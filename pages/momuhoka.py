@@ -1,10 +1,10 @@
 import streamlit as st
 from streamlit_elements import elements, mui, html
 
-from data.modules import diy_menu
+from data.modules import diy_menu, pages_dict
 
 # 页面菜单
-diy_menu(_page="主页")
+diy_menu(_page="我的主页", _page_dict=pages_dict)
 
 with elements("new"):
     mui.Typography("Hello world")

@@ -10,17 +10,22 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 from PIL import Image, ImageFont, ImageDraw
+from streamlit_option_menu import option_menu
 from wordcloud import WordCloud
+
+
+# 初始化
+def initialize():
+    if not os.path.exists(cachepath):
+        os.mkdir(cachepath)
+    if not os.path.exists(datapath):
+        os.mkdir(datapath)
+
 
 # 图表部分用到本地缓存-缓存路径 ./cache
 cachepath = "./cache"
-if not os.path.exists(cachepath):
-    os.mkdir(cachepath)
-
 # 部分文件存储位置
 datapath = "./data"
-if not os.path.exists(datapath):
-    os.mkdir(datapath)
 
 
 # 读取本地缓存文件
@@ -322,3 +327,17 @@ def word_clouds(words: list, hotwords: list):
     # 转化为图片数据
     wcImage = wordcloud.to_image()
     return wcImage
+
+
+# 页面字典
+pages_dict = {"主页": "main.py", "模型": "pages/model.py", "其他": "pages/others.py", "工具": "pages/settings.py"}
+
+
+# 自定义的page菜单
+def diy_menu(_page: str, _page_dict: dict) -> None:
+    pages = list(_page_dict.keys())
+    page = option_menu(None, ["主页", "模型", "其他", '工具'],
+                       icons=['house', 'cloud-upload', "list-task", 'gear'],
+                       menu_icon="cast", default_index=pages.index(_page), orientation="horizontal")
+    if page != _page:
+        st.switch_page(_page_dict[page])

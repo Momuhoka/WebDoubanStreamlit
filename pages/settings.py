@@ -6,11 +6,10 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-# 缓存路径 ./cache
-cachepath = "./cache"
+from data.modules import diy_menu, pages_dict, datapath, cachepath
 
-# 部分文件存储位置
-datapath = "./data"
+# 页面菜单
+diy_menu(_page="工具", _page_dict=pages_dict)
 
 
 @st.cache_data(ttl=300,  # Cache data for 5 min (=300 seconds)

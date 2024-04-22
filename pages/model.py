@@ -7,17 +7,23 @@ import pandas as pd
 import thulac
 from stqdm import stqdm
 
+from data.modules import diy_menu, pages_dict
+
 # 设置全局属性
 st.set_page_config(
     page_title='模型训练',
     page_icon='🧊',
-    layout='wide'
+    layout='wide',
+    initial_sidebar_state='collapsed'
 )
 st.spinner("载入jieba分词缓存...")
 import jieba
 
 st.spinner("载入tensorflow模型库...")
 import tensorflow as tf
+
+# 页面菜单
+diy_menu(_page="模型", _page_dict=pages_dict)
 
 EAGER_MODE = ":green[TRUE]" if tf.executing_eagerly() else ":red[FALSE]"
 GPU_AVAILABLE = ":green[AVAILABLE]" if tf.config.list_physical_devices('GPU') else ":red[NOT AVAILABLE]"

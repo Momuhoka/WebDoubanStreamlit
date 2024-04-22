@@ -3,10 +3,14 @@ import os.path
 import streamlit as st
 import pandas as pd
 
-from data.modules import (cachepath, read_txt, read_excel,
+from data.modules import (initialize, cachepath, read_txt, read_excel,
                           keys_cache, all_cache, checkcache,
                           film_cache, pie_chart_module, point_chart_module,
-                          datapath, word_filter, word_clouds)
+                          datapath, word_filter, word_clouds,
+                          diy_menu, pages_dict)
+# 初始化
+initialize()
+
 # 使用的数据库
 DB = 3
 
@@ -14,7 +18,8 @@ DB = 3
 st.set_page_config(
     page_title='第三小组',
     page_icon='♾️',
-    layout='wide'
+    layout='wide',
+    initial_sidebar_state='collapsed'
 )
 
 # experimental_allow_widgets=True
@@ -22,6 +27,8 @@ st.set_page_config(
 # 对缓存函数中的小部件的支持目前处于实验阶段
 # 将此参数设置为 True 可能会导致内存使用过多，因为 widget 值被视为缓存的附加输入参数
 
+# 页面菜单
+diy_menu(_page="主页", _page_dict=pages_dict)
 
 # 默认渲染到主界面
 st.title('豆瓣TOP250电影')

@@ -4,6 +4,8 @@ import time
 
 import pandas as pd
 import streamlit as st
+
+from data.modules import diy_menu, pages_dict
 # 自定义sensiment函数
 from data.snownlp import streamlit_snownlp as streamsensiment
 from stqdm import stqdm
@@ -52,6 +54,9 @@ def save_file(star: int, _text: str):
         with open(f"{datapath}/snownlp/neg.txt", mode="a", encoding="utf-8") as _file:
             _file.write(f"{_text}\n")
 
+
+# 页面菜单
+diy_menu(_page="其他", _page_dict=pages_dict)
 
 with st.container(border=True):
     if st.button("生成好评/差评txt文件", use_container_width=True):

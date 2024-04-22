@@ -1,93 +1,79 @@
+import os
+import random
+
 import streamlit as st
 from streamlit_elements import elements, mui, html
 
-from data.modules import diy_menu, pages_dict
+from data.modules import diy_menu, pages_dict, cachepath, read_txt, keys_cache
+
+# 默认数据库
+DB = 3
 
 # 页面菜单
 diy_menu(_page="我的主页", _page_dict=pages_dict)
 
-with elements("new"):
-    mui.Typography("Hello world")
+# 只读取键值缓存
+if os.path.isfile(f"{cachepath}/键值.txt"):
+    # 文件信息需要拆分
+    keysString = read_txt(f"{cachepath}/键值.txt")
+    keysCache = {}
+    # 列表的字典 {x: [a,b,c...], y: [d,e,f...]...}
+    for index, keyString in zip(["详情", "用户", "短评", "长评"], keysString):
+        keysList = keyString.split('|')
+        keysCache[index] = keysList
+else:
+    # 列表的字典 {x: [a,b,c...], y: [d,e,f...]...}
+    keysCache = keys_cache(db=DB)
 
-    mui.Button(
-        mui.icon.EmojiPeople,
-        mui.icon.DoubleArrow,
-        "Button with multiple children"
-    )
+# 获取电影列表
+films = [filmkey.split(" : ")[1] for filmkey in keysCache["详情"]]
 
-    # You can also add children to an element using a 'with' statement.
-    #
-    # <Button>
-    #   <EmojiPeople />
-    #   <DoubleArrow />
-    #   <Typography>
-    #     Hello world
-    #   </Typography>
-    # </Button>
+selected_films = st.multiselect(label="搜索电影", options=films, default=None)
+if not selected_films:
+    selected_films = films
 
-    with mui.Button:
-        mui.icon.EmojiPeople()
-        mui.icon.DoubleArrow()
-        mui.Typography("Button with multiple children")
-
-    with mui.Paper:
-        with mui.Typography:
-            html.p("Hello world")
-            html.p("Goodbye world")
-
-    with mui.Paper(elevation=3, variant="outlined", square=True):
-        mui.TextField(
-            label="My text input",
-            defaultValue="Type here",
-            variant="outlined",
-        )
-
-with elements("box"):
-    mui.Box(
-        "Some text in a styled box",
-        sx={
-            "bgcolor": "background.paper",
-            "boxShadow": 1,
-            "borderRadius": 2,
-            "p": 2,
-            "minWidth": 300,
-        }
-    )
-
-
+# 动态元素
 with elements("dashboard"):
 
-    # You can create a draggable and resizable dashboard using
-    # any element available in Streamlit Elements.
+    from streamlit_elements import dashboard, html
 
-    from streamlit_elements import dashboard
+    if 'chosen_film' not in st.session_state:
+        st.session_state.chosen_film = 'None'
 
-    # First, build a default layout for every element you want to include in your dashboard
+    # 格子规模
+    width = 2
+    height = 3
+    # 乱序
+    random.shuffle(selected_films)
+    if not st.session_state.chosen_film or st.session_state.chosen_film not in selected_films:
+        st.session_state.chosen_film = selected_films[0]
+    # 选中的电影和信息栏
+    layout = [dashboard.Item(st.session_state.chosen_film, 0, 0, width + 1, height + 1, isResizable=False),
+              dashboard.Item("infos", width + 1, 0, 11 - width, height + 1, static=True)]
+    # 过滤选中的电影，并展示其他的电影
+    for index, film in enumerate([_ for _ in selected_films if st.session_state.chosen_film != _]):
+        layout.append(dashboard.Item(film, (index * width) % (width * 6), height + 1 + index // 6, width, height,
+                                     isResizable=False))
 
-    layout = [
-        # Parameters: element_identifier, x_pos, y_pos, width, height, [item properties...]
-        dashboard.Item("first_item", 0, 0, 2, 2),
-        dashboard.Item("second_item", 2, 0, 2, 2, isDraggable=False, moved=False),
-        dashboard.Item("third_item", 0, 2, 1, 1, isResizable=False),
-    ]
 
-    # Next, create a dashboard layout using the 'with' syntax. It takes the layout
-    # as first parameter, plus additional properties you can find in the GitHub links below.
+    # callback函数，用来固定需要展示的信息
+    def handle_drag_stop(updated_layout):
+        # 找最小值先设置很大的值
+        minxplusy = 1e2
+        for old_layout in updated_layout:
+            if old_layout['x'] + old_layout['y'] < minxplusy:
+                minxplusy = old_layout['x'] + old_layout['y']
+                st.session_state.chosen_film = old_layout['i']
 
-    with dashboard.Grid(layout):
-        mui.Paper("First item", key="first_item")
-        mui.Paper("Second item (cannot drag)", key="second_item")
-        mui.Paper("Third item (cannot resize)", key="third_item")
 
-    # If you want to retrieve updated layout values as the user move or resize dashboard items,
-    # you can pass a callback to the onLayoutChange event parameter.
+    with dashboard.Grid(layout, compactType="vertical", onDragStop=handle_drag_stop):
+        for film in selected_films:
+            with mui.Paper(key=film, elevation=3, variant="elevation", square=False):
+                html.img(
+                    # src="data/temp.jpg",
+                    alt=film
+                )
+        with mui.Paper(key="infos", elevation=2, variant="elevation", square=False):
+            mui.icon.DoubleArrow()
+            mui.Typography("Infomations.")
 
-    def handle_layout_change(updated_layout):
-        # You can save the layout in a file, or do anything you want with it.
-        # You can pass it back to dashboard.Grid() if you want to restore a saved layout.
-        st.write(updated_layout)
-
-    with dashboard.Grid(layout, onLayoutChange=handle_layout_change):
-        mui.Paper("First item", key="first_item")
-        mui.Paper("Second item (cannot drag)", key="second_item")
-        mui.Paper("Third item (cannot resize)", key="third_item")

@@ -16,6 +16,14 @@ $ streamlit run ./main.py
 **请自行添加对应的菜单名和页面py文件属性:**
 
 **例如:**
-``` text
+``` code
 {"..": "...", "我的主页": "pages/my_page.py"}
 ```
+## 关于pip库安装 ##
+**找到requirements.txt文件目录**
+
+**例如就在本目录下:**
+``` bash
+$ pip install -r .\requirements.txt --upgrade
+```
+***upgrade参数是更新，建议加上防止版本过低***

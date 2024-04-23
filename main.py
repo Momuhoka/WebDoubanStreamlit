@@ -128,7 +128,7 @@ for ip in usersDf["ip"].astype(str):
 # 过滤 nan
 usersDf.dropna(axis=0, how="any", subset=["ip"], inplace=True)
 
-tab_1, tab_2 = st.tabs(["电影评论", "电影云图"])
+tab_1, tab_2 ,tab_3= st.tabs(["电影评论", "电影云图","影评推荐指数"])
 # 图表部分
 with tab_1:
     col_1, col_2 = st.columns(spec=2)
@@ -142,7 +142,7 @@ with tab_1:
             "数目": list(ip_counts.values())
         })
         with st.expander(f"<{film}>-饼图", expanded=True):
-            fig1 = pie_chart_module(ipdata)
+            fig1 = pie_chart_module(ipdata,"用户评论分布")
             st.plotly_chart(fig1, use_container_width=True)
     with col_2:
         idList = usersDf["id"].astype(str)
@@ -193,4 +193,53 @@ with tab_2:
                 else:  # 存在词云文件
                     # 读取词云图
                     st.image(f"{cachepath}/{film}/词云.png")
+with tab_3:
+    col_3, col_4 = st.columns(spec=2)
+    with col_3:
+        starList = scommsDf["star"].astype(str).replace("-1.0", "1.0").tolist()
+        star_map = {"1.0": "很差", "2.0": "较差", "3.0": "还行", "4.0": "推荐", "5.0": "力荐"}
+        starList_mapped = [star_map[star] for star in starList]
+        star_counts = dict(collections.Counter(starList_mapped))
+        star_data = pd.DataFrame({
+            "星级": list(star_counts.keys()),
+            "数目": list(star_counts.values())
+        })
+        with st.expander(f"<{film}>-饼图", expanded=True):
+            fig_star = pie_chart_module(star_data, "用户评分分布")
+            st.plotly_chart(fig_star, use_container_width=True)
+    with  col_4:
+        reviews=['短评','长评']
+        with st.expander(f"<{film}>-评论", expanded=True):
+            option = st.selectbox(
+                'Featured reviews',
+                reviews
+            )
+            if(option=='短评'):
+                index1=scommsDf[scommsDf['star']==5.0].index[0]
+                comment = scommsDf.loc[index1,'comment']
+                user_data = scommsDf.loc[index1,'用户']
+                date_data = scommsDf.loc[index1,'date']
+                homepage = scommsDf.loc[index1,'homepage']
+                comment_display = f"""{comment}
+
+Author    :    {user_data}  
+Date      :    {date_data}
+                """
+                st.text_area('', comment_display, height=250)
+                st.write("If you are interested in this author   ,  here is his homepage:")
+                st.markdown(homepage)
+            else:
+                index1 = fcommsDf[(fcommsDf['star'] == 5.0) & (fcommsDf['comment'].str.len() < 200)].index[0]
+                comment = fcommsDf.loc[index1, 'comment']
+                user_data = fcommsDf.loc[index1, '用户']
+                date_data = fcommsDf.loc[index1, 'date']
+                homepage = fcommsDf.loc[index1, 'homepage']
+                comment_display = f"""{comment}
+
+Author    :    {user_data}  
+Date      :    {date_data}
+                                """
+                st.text_area('', comment_display, height=300)
+                st.write("If you are interested in this author   ,  here is his homepage:")
+                st.markdown(homepage)
 

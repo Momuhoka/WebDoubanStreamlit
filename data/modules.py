@@ -258,21 +258,21 @@ def point_chart_module(data: pd.DataFrame):
 
 
 @st.cache_data(show_spinner="饼图生成中...")
-def pie_chart_module(data: pd.DataFrame):
+def pie_chart_module(data: pd.DataFrame,titles:str):
     # 使用altair创建饼图
+    column_name = data.columns[0]
     fig = px.pie(
         data,
         values="数目",
-        names="地域",
-        hover_name="地域",
+        names=column_name,
+        hover_name=column_name,
         hole=0.4,
-        title="用户评论分布")
+        title=titles)
     fig.update_traces(
         textposition='inside',  # 显示在里面
         textinfo='label+percent'  # 标签名+百分比
     )
     return fig
-
 
 @st.cache_data(show_spinner="字符过滤中...")
 def word_filter(comstring: str, name: str, stopwords: list):
@@ -330,7 +330,7 @@ def word_clouds(words: list, hotwords: list):
 
 
 # 页面字典
-pages_dict = {"主页": "main.py", "模型": "pages/model.py", "其他": "pages/others.py", "工具": "pages/settings.py", "我的主页": "pages/momuhoka.py"}
+pages_dict = {"主页": "main.py", "模型": "pages/model.py", "其他": "pages/others.py", "工具": "pages/settings.py", "我的主页": "pages/momuhoka.py","jared的主页":"pages/jared_.py"}
 
 
 # 自定义的page菜单

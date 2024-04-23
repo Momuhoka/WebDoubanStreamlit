@@ -3,6 +3,7 @@ import os.path
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import redis
 from data.modules import (initialize, cachepath, read_txt, read_excel,
                           keys_cache, all_cache, checkcache,
                           film_cache, pie_chart_module, point_chart_module,
@@ -13,51 +14,27 @@ import pandas as pd
 import streamlit as st
 from streamlit_agraph import agraph, Node, Edge, Config
 
-
-# 函数用于加载CSV文件并创建节点和边
-def load_relations1(file_path):
-    df = pd.read_csv(file_path)
-    start_ids = df[':START_ID'].tolist()
-    end_ids = df[':END_ID'].tolist()
-    relations = df['relation'].tolist()
-    type = df['type'].tolist()
-    filmname = df['film_name'].tolist()
-    nodes = []
-    edges = []
-
-
-    for start_ids, end_ids, relations,filmname,type in zip(start_ids, end_ids, relations,filmname,type):
-        # 假设start_id和end_id同时代表了节点的ID和标签
-        # 实际应用中可能需要从数据库或其他地方获取更多信息
-        nodes.append(Node(id=start_ids, label=filmname, color="green"))
-        nodes.append(Node(id=end_ids, label=type, color="yellow"))
+def main1():
+    nodes, edges = [], []
+    redis_pool = redis.ConnectionPool(host='175.178.4.58', port=6379, password="momuhoka", decode_responses=True, db=5)
+    r = redis.Redis(connection_pool=redis_pool)
+    for i in range(694):
+        m = r.get(str(i))  # 将'i'转换为字符串，并使用r.get()获取对应键的值
+        words = m.split( )
+        # 存入变量
+        start_ids = int(words[0])
+        end_ids = int(words[1])
+        filmname = words[2]
+        filmtype = words[3]  # 避免使用type关键字作为变量名
+        # 去除重复的节点
+        nodes.append(Node(id=start_ids, label=filmname, size=15, color="green"))
+        nodes.append(Node(id=end_ids, label=filmtype, size=15, color="yellow"))
         edges.append(Edge(source=start_ids, target=end_ids))
 
-    # 去除重复的节点
-    nodes = list({node.id: node for node in nodes}.values())
-    return nodes,edges
+    nodes = set({node.id: node for node in nodes}.values())
 
-def load_relations2(file_path):
-    df = pd.read_csv(file_path)
-    start_ids = df[':START_ID'].tolist()
-    end_ids = df[':END_ID'].tolist()
-    relations = df['relation'].tolist()
-    director = df['director'].tolist()
-    filmname = df['film_name'].tolist()
-    nodes = []
-    edges = []
-    for start_ids, end_ids, relations,filmname,director in zip(start_ids, end_ids, relations,filmname,director):
-        # 假设start_id和end_id同时代表了节点的ID和标签
-        # 实际应用中可能需要从数据库或其他地方获取更多信息
-        nodes.append(Node(id=start_ids, label=filmname, color="pink"))
-        nodes.append(Node(id=end_ids, label=director, color="black"))
-        edges.append(Edge(source=start_ids, target=end_ids,label=relations))
-
-    # 去除重复的节点
-    nodes = list({node.id: node for node in nodes}.values())
-    return nodes,edges
-# 主函数，用于运行Streamlit应用
-def fuc1():
+    # 设置图形的配置
+    config = Config(width=2000, height=2000, directed=True, physics=True, hierarchical=True, edgeMinimization=False, nodeSpacing=10, levelSeparation=10)
     st.title("电影类型关系图")
     st.markdown('''
     :red[ps:] :orange[球云图] :green[中心] :blue[可移动] :violet[,]
@@ -65,20 +42,28 @@ def fuc1():
     st.markdown('''
     :red[ps:] :orange[球云图可以反映] :green[电影与类型] :blue[之间的关系,] :violet[其中黄色小球代表]
     :gray[不同的类型,] :rainbow[绿色小球代表电影名].''')
-    # 加载关系，并创建图形的节点和边
-    nodes1, edges1 = [], []
-    #for relation in ['belong_to']:
-    n, e = load_relations1(f'D:\\3160257581\FileRecv\\tt.csv')
-    nodes1.extend(n)
-    edges1.extend(e)
+    agraph(nodes=nodes, edges=edges, config=config)
+def main2():
+    nodes, edges = [], []
+    redis_pool = redis.ConnectionPool(host='175.178.4.58', port=6379, password="momuhoka", decode_responses=True, db=6)
+    r = redis.Redis(connection_pool=redis_pool)
+    for i in range(217):
+        m = r.get(str(i))  # 将'i'转换为字符串，并使用r.get()获取对应键的值
+        words = m.split( )
+        # 存入变量
+        start_ids = int(words[0])
+        end_ids = int(words[1])
+        filmname = words[2]
+        director = words[3]  # 避免使用type关键字作为变量名
+        # 去除重复的节点
+        nodes.append(Node(id=start_ids, label=filmname, size=15, color="pink"))
+        nodes.append(Node(id=end_ids, label=director, size=15, color="black"))
+        edges.append(Edge(source=start_ids, target=end_ids, label='directed'))
+
+    nodes = set({node.id: node for node in nodes}.values())
 
     # 设置图形的配置
-    config = Config(width=2000, height=2000, directed=True, physics=True,hierarchical=True,edgeMinimization=False,nodeSpacing=10,levelSeparation=10)
-
-    # 创建图形
-    agraph(nodes=nodes1, edges=edges1, config=config)
-def fuc2():
-# 加载关系，并创建图形的节点和边
+    config = Config(width=2000, height=2000, directed=True, physics=True,hierarchical=False)
     st.title("导演与电影关系图")
     st.markdown('''
     :red[ps:] :orange[球云图] :green[中心] :blue[可移动] :violet[ , ]
@@ -86,20 +71,12 @@ def fuc2():
     st.markdown('''
     :red[ps:] :orange[球云图可以反映] :green[电影与导演] :blue[之间的关系 , ] :violet[ 其中粉色小球代表]
     :gray[不同的电影 , ] :rainbow[ 黑色小球代表导演].''')
-    nodes2, edges2 = [], []
-    #for relation in ['directed']:
-    d, g = load_relations2(f'D:\\3160257581\FileRecv\\mm.csv')
-    nodes2.extend(d)
-    edges2.extend(g)
+    agraph(nodes=nodes, edges=edges, config=config)
+# 函数用于加载CSV文件并创建节点和边
 
-    # 设置图形的配置
-    config = Config(width=2000, height=2000, directed=True, physics=True,hierarchical=False)
-
-    # 创建图形
-    agraph(nodes=nodes2, edges=edges2, config=config)
 if __name__ == "__main__":
     tab_1,tab_2=st.tabs(["电影类型球云图","导演与电影关系球云图"])
     with tab_1:
-        fuc1()
+        main1()
     with tab_2:
-        fuc2()
+        main2()

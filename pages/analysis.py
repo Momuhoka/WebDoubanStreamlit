@@ -14,21 +14,13 @@ initialize()
 # 使用的数据库
 DB = 3
 
-# 设置全局属性
-st.set_page_config(
-    page_title='第三小组',
-    page_icon='♾️',
-    layout='wide',
-    initial_sidebar_state='collapsed'
-)
-
 # experimental_allow_widgets=True
 # 允许在缓存函数中使用小部件。默认值为False
 # 对缓存函数中的小部件的支持目前处于实验阶段
 # 将此参数设置为 True 可能会导致内存使用过多，因为 widget 值被视为缓存的附加输入参数
 
 # 页面菜单
-diy_menu(_page="主页", _page_dict=pages_dict)
+diy_menu(_page="分析", _page_dict=pages_dict)
 
 # 默认渲染到主界面
 st.title('豆瓣TOP250电影')
@@ -128,7 +120,7 @@ for ip in usersDf["ip"].astype(str):
 # 过滤 nan
 usersDf.dropna(axis=0, how="any", subset=["ip"], inplace=True)
 
-tab_1, tab_2 ,tab_3= st.tabs(["电影评论", "电影云图","影评推荐指数"])
+tab_1, tab_2 ,tab_3= st.tabs(["电影评论", "电影云图", "影评推荐指数"])
 # 图表部分
 with tab_1:
     col_1, col_2 = st.columns(spec=2)
@@ -207,7 +199,7 @@ with tab_3:
         with st.expander(f"<{film}>-饼图", expanded=True):
             fig_star = pie_chart_module(star_data, "用户评分分布")
             st.plotly_chart(fig_star, use_container_width=True)
-    with  co4:
+    with co4:
         reviews=['短评','长评']
         with st.expander(f"<{film}>-评论", expanded=True):
             option = st.selectbox(

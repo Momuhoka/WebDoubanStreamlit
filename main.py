@@ -105,6 +105,7 @@ expander.dataframe(values, use_container_width=True, hide_index=True)
 usersDf = read_excel(f"{cachepath}/{film}/用户.xlsx")
 scommsDf = read_excel(f"{cachepath}/{film}/短评.xlsx")
 fcommsDf = read_excel(f"{cachepath}/{film}/长评.xlsx")
+
 # 评论拼接
 fcommsDf.rename(columns={"full_comment": "comment"}, inplace=True)  # 拼接列名一致
 sandfDf = pd.concat([scommsDf, fcommsDf], axis=0).astype(str)
@@ -210,8 +211,9 @@ with tab_3:
     with  co4:
         reviews=['短评','长评']
         with st.expander(f"<{film}>-评论", expanded=True):
+            st.subheader('精选评论')
             option = st.selectbox(
-                'Featured reviews',
+                '',
                 reviews
             )
             if(option=='短评'):
@@ -226,7 +228,7 @@ Author    :    {user_data}
 Date      :    {date_data}
                 """
                 st.text_area('', comment_display, height=250)
-                st.write("If you are interested in this author   ,  here is his homepage:")
+                st.write("如果你对这位用户感兴趣   ,  这是他的主页:")
                 st.markdown(homepage)
             else:
                 index1 = fcommsDf[(fcommsDf['star'] == 5.0) & (fcommsDf['comment'].str.len() < 200)].index[0]
@@ -240,6 +242,6 @@ Author    :    {user_data}
 Date      :    {date_data}
                                 """
                 st.text_area('', comment_display, height=300)
-                st.write("If you are interested in this author   ,  here is his homepage:")
+                st.write("如果你对这位用户感兴趣   ,  这是他的主页:")
                 st.markdown(homepage)
 

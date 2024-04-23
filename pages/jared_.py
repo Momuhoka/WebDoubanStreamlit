@@ -183,7 +183,7 @@ with tab_4:
             all_actors = sorted(all_actors)
 
             # 创建下拉选项框供用户选择演员
-            selected_actor = st.selectbox('选择演员', all_actors)
+            selected_actor = st.selectbox('', all_actors)
 
             # 根据所选演员过滤数据
             filtered_rows = []

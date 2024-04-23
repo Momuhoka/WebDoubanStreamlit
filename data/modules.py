@@ -236,7 +236,7 @@ def all_cache(_db: int, _mode: bool):
         for _index, keys in enumerate(_keysCache["详情"]):
             holder.progress(value=(_index + 1) / length, text=f"处理进度: {_index + 1}/{length}")
             _film = keys.split(" : ")[1]  # 电影名
-            film_cache(film=_film, keysCache=_keysCache, mode=_mode)
+            film_cache(_db=_db, film=_film, keysCache=_keysCache, mode=_mode)
         holder.empty()
 
 

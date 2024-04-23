@@ -1,61 +1,118 @@
 import collections
-import os.path
-import streamlit as st
-import pandas as pd
+import os
+import random
 
-from data.modules import (initialize, cachepath, read_txt, read_excel,
-                          keys_cache, all_cache, checkcache,
-                          film_cache, pie_chart_module, point_chart_module,
-                          datapath, word_filter, word_clouds,
-                          diy_menu, pages_dict)
+import pandas as pd
+import streamlit as st
+import requests
+import streamlit_shadcn_ui as ui
+from stqdm import stqdm
+from streamlit_image_select import image_select
+from streamlit_star_rating import st_star_rating
+
+from data.modules import diy_menu, pages_dict, cachepath, read_txt, read_excel, \
+    pie_chart_module, point_chart_module, datapath, word_filter, word_clouds, initialize, init_connection, get_value, \
+    get_values, all_cache, checkcache, film_cache, get_keysCache
+
 # 初始化
 initialize()
 
-# 使用的数据库
+# 默认数据库
 DB = 3
 
 # 设置全局属性
 st.set_page_config(
-    page_title='第三小组',
+    page_title='豆瓣宇宙',
     page_icon='♾️',
     layout='wide',
     initial_sidebar_state='collapsed'
 )
 
-# experimental_allow_widgets=True
-# 允许在缓存函数中使用小部件。默认值为False
-# 对缓存函数中的小部件的支持目前处于实验阶段
-# 将此参数设置为 True 可能会导致内存使用过多，因为 widget 值被视为缓存的附加输入参数
-
 # 页面菜单
 diy_menu(_page="主页", _page_dict=pages_dict)
 
-# 默认渲染到主界面
-st.title('豆瓣TOP250电影')
-st.info('电影详情一览')
-st.markdown('> st.cahce 缓存返回数据的函数-检查到更新才会刷新-请检查使用正误')
-
-# 网页界面
-
 # 只读取键值缓存
-if os.path.isfile(f"{cachepath}/键值.txt"):
-    # 文件信息需要拆分
-    keysString = read_txt(f"{cachepath}/键值.txt")
-    keysCache = {}
-    # 列表的字典 {x: [a,b,c...], y: [d,e,f...]...}
-    for index, keyString in zip(["详情", "用户", "短评", "长评"], keysString):
-        keysList = keyString.split('|')
-        keysCache[index] = keysList
-else:
-    # 列表的字典 {x: [a,b,c...], y: [d,e,f...]...}
-    keysCache = keys_cache(db=DB)
+keysCache = get_keysCache(_db=DB)
 
 # 获取电影列表
 films = [filmkey.split(" : ")[1] for filmkey in keysCache["详情"]]
+selected_films = st.multiselect(label="搜索电影", options=films, default=None)
+if not selected_films:
+    selected_films = films
 
-film = st.selectbox(
-    "电影列表", films, help="输入以搜索"
+
+# 获取封面相关信息
+def get_covers(_db: int):
+    try:
+        with init_connection(db=_db) as _r:
+            result = get_values(_r=_r, keys=[f"电影 : {_} : 封面" for _ in selected_films])
+    except Exception as e:
+        st.error(f"{e}\n数据库连接失败")
+    return result
+
+
+all_data = get_covers(_db=DB)
+image_urls = all_data["cover"]
+# image_urls = ["https://img3.doubanio.com/view/photo/s_ratio_poster/public/p480747492.webp",
+#               "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2561716440.webp",
+#               "https://img3.doubanio.com/view/photo/s_ratio_poster/public/p2372307693.webp"]
+avatar_urls = all_data["avatars"]
+avatar_names = all_data["names"]
+
+
+# 发起GET请求获取图片内容
+@st.cache_data(show_spinner="正在获取封面...")
+def get_cover(url: str, _film: str):
+    if not os.path.exists(f"{cachepath}/{_film}"):
+        # 判断目录是否存在，不存在则创建
+        os.mkdir(f"{cachepath}/{_film}")
+    if not os.path.exists(f"{cachepath}/{_film}/images"):
+        os.mkdir(f"{cachepath}/{_film}/images")
+    if not os.path.exists(f"{cachepath}/{_film}/images/cover.jpg"):
+        response = requests.get(url)
+        with open(f"{cachepath}/{_film}/images/cover.jpg", 'wb') as f:
+            f.write(response.content)
+    Image_path = f"{os.getcwd()}\\cache\\{_film}\\images\\cover.jpg"
+    return Image_path
+
+
+# @st.cache_data(show_spinner="正在获取头像...")
+# def get_avatars(urls: list[str], _film: str):
+#     Image_paths = []
+#     if not os.path.exists(f"{cachepath}/{_film}"):
+#         # 判断目录是否存在，不存在则创建
+#         os.mkdir(f"{cachepath}/{_film}")
+#     if not os.path.exists(f"{cachepath}/{_film}/images"):
+#         os.mkdir(f"{cachepath}/{_film}/images")
+#     for url in urls:
+#         response = requests.get(url)
+#         if not os.path.exists(f"{cachepath}/{_film}/images/{urls.index(url)}.jpg"):
+#             with open(f"{cachepath}/{_film}/images/{urls.index(url)}.jpg", 'wb') as f:
+#                 f.write(response.content)
+#         Image_paths.append(f"{os.getcwd()}\\cache\\{_film}\\images\\{urls.index(url)}.jpg")
+#     return Image_paths
+
+col_1, col_2 = st.columns(spec=[0.25, 0.75])
+
+cover_paths = []
+# 获取所有图片
+for film in stqdm(selected_films, desc="进度"):
+    url = image_urls[selected_films.index(film)]
+    try:
+        cover_paths.append(get_cover(url=url, _film=film))
+    except Exception as e:
+        st.write(f"{e}\n{film}")
+        break
+
+# 选择电影
+film_index = image_select(
+    label="选择电影",
+    images=cover_paths,
+    use_container_width=False,
+    captions=selected_films,
+    return_value="index",
 )
+film = selected_films[film_index]
 
 # 侧边栏+所有缓存任务
 with st.sidebar:
@@ -82,30 +139,10 @@ with st.sidebar:
 # 得到电影后就可以开始缓存-放在all_cache之后
 if not mode:
     film_cache(_db=DB, film=film, keysCache=keysCache, mode=False)
-
-choice = st.selectbox(
-    "选择", ["详情", "用户", "短评", "长评"]
-)
-chosen_str = f"电影 : {film} : {choice}"
-chosen_keys = [key for key in keysCache[choice] if chosen_str in key]
-desc = {
-    "详情": f"{choice}-<{film}>",
-    "用户": f"已收集{choice}信息: {len(chosen_keys)}",
-    "短评": f"已收集{choice}信息: {len(chosen_keys)}",
-    "长评": f"已收集{choice}信息: {len(chosen_keys)}"
-}
-
-# 显示选择的电影信息
-# 这里一定要有缓存
-values = read_excel(f"{cachepath}/{film}/{choice}.xlsx")
-expander = st.expander(desc[choice])
-expander.dataframe(values, use_container_width=True, hide_index=True)
-
 # 图表的基础数据源
 usersDf = read_excel(f"{cachepath}/{film}/用户.xlsx")
 scommsDf = read_excel(f"{cachepath}/{film}/短评.xlsx")
 fcommsDf = read_excel(f"{cachepath}/{film}/长评.xlsx")
-
 # 评论拼接
 fcommsDf.rename(columns={"full_comment": "comment"}, inplace=True)  # 拼接列名一致
 sandfDf = pd.concat([scommsDf, fcommsDf], axis=0).astype(str)
@@ -129,119 +166,167 @@ for ip in usersDf["ip"].astype(str):
 # 过滤 nan
 usersDf.dropna(axis=0, how="any", subset=["ip"], inplace=True)
 
-tab_1, tab_2 ,tab_3= st.tabs(["电影评论", "电影云图","影评推荐指数"])
-# 图表部分
-with tab_1:
-    col_1, col_2 = st.columns(spec=2)
-    with col_1:
-        # 取出对应电影数据 astype-float型转换成str
-        ipList = usersDf["ip"].astype(str).to_list()
-        # 词频统计
-        ip_counts = dict(collections.Counter(ipList))  # 对IP做词频统计
-        ipdata = pd.DataFrame({
-            "地域": list(ip_counts.keys()),
-            "数目": list(ip_counts.values())
-        })
-        with st.expander(f"<{film}>-饼图", expanded=True):
-            fig1 = pie_chart_module(ipdata,"用户评论分布")
-            st.plotly_chart(fig1, use_container_width=True)
-    with col_2:
-        idList = usersDf["id"].astype(str)
-        yearList = usersDf["jointime"].to_list()
-        hadseenList = usersDf["hadseen"].fillna(0).to_list()
-        usersdata = pd.DataFrame({
-            "ID": idList,
-            "IP": ipList,
-            "加入年份": yearList,
-            "估算年份": [int(x[0:4]) + int(x[5:7]) / 12 + int(x[8:10]) / 30 for x in yearList],
-            "看过电影": hadseenList
-        })
-        with st.expander(f"<{film}>-散点图", expanded=True):
-            fig2 = point_chart_module(usersdata)
-            st.plotly_chart(fig2, use_container_width=True)
-# 词云部分
-with tab_2:
-    if not os.path.isfile(f"{datapath}/new_stopwords.txt"):
-        st.markdown(f"# 在{datapath}没有找到new_stopwords.txt文件")
-    else:
-        co1, co2 = st.columns(spec=[0.6, 0.4])
-        stopwords = read_txt(f"{datapath}/new_stopwords.txt")
-        words = word_filter(comstring=comString, name=film, stopwords=stopwords)
-        # 词频统计
-        word_counts = collections.Counter(words)  # 对分词做词频统计
-        word_counts_top = word_counts.most_common(20)  # 获取最高频的词
-        with co2:
+with col_1:
+    with st.container(border=True):
+        st.image(cover_paths[film_index], use_column_width=True)
+with col_2:
+    try:
+        with init_connection(db=DB) as r:
+            value = get_value(_r=r, key=f"电影 : {film} : 详情")
+    except Exception as e:
+        st.error(f"{e}\n数据库连接失败")
+    col_2_1, col_2_2 = st.columns(spec=[0.7, 0.3])
+    with col_2_1:
+        st.markdown(f"#### 🎞️{selected_films[film_index]}")
+        st.markdown(f"**🗳投票数: {value['votes']}**  **🍿类型: {value['filmtype']}**"
+                    f"  **📀年份: {value['year']}**  **⌛时长: {value['times']}min**"
+                    f"  **📜语言: {value['language']}**")
+        tab = ui.tabs(options=["简介", "评论", "分析", "词云"], default_value="简介")
+    with col_2_2:
+        st_star_rating(label="推荐指数:", maxValue=5, defaultValue=round(float(value["score"]) / 2), read_only=True)
+        if tab == "评论":
+            comm_sel = st.selectbox(label="**随机评论:**", options=["短评", "长评"])
+        if tab == "词云":
             if st.button("重新生成词云图",
                          type="primary",
                          use_container_width=True):
                 os.remove(f"{cachepath}/{film}/词云.png")
                 # 清除st.cahce_data的图片缓存
                 word_clouds.clear()
-            # 高频词展示
-            wordTop = pd.DataFrame(word_counts_top).rename(
-                columns={0: "分词", 1: "频次"})
-            st.dataframe(wordTop, use_container_width=True, hide_index=True)
-            st.info("词云图背景以第一个高频中文词决定", icon="ℹ️")
-        with co1:
-            with st.expander(f"<{film}>-词云图", expanded=True):
-                if not os.path.isfile(f"{cachepath}/{film}/词云.png"):
-                    # 调用函数+缓存
-                    fig = word_clouds(words=words, hotwords=word_counts_top)
-                    st.image(fig)
-                    if not os.path.exists(f"{cachepath}/{film}"):
-                        os.mkdir(f"{cachepath}/{film}")
-                    fig.save(f"{cachepath}/{film}/词云.png")
-                else:  # 存在词云文件
-                    # 读取词云图
-                    st.image(f"{cachepath}/{film}/词云.png")
-with tab_3:
-    co3, co4 = st.columns(spec=2)
-    with co3:
-        starList = scommsDf["star"].astype(str).replace("-1.0", "1.0").tolist()
-        star_map = {"1.0": "很差", "2.0": "较差", "3.0": "还行", "4.0": "推荐", "5.0": "力荐"}
-        starList_mapped = [star_map[star] for star in starList]
-        star_counts = dict(collections.Counter(starList_mapped))
-        star_data = pd.DataFrame({
-            "星级": list(star_counts.keys()),
-            "数目": list(star_counts.values())
-        })
-        with st.expander(f"<{film}>-饼图", expanded=True):
-            fig_star = pie_chart_module(star_data, "用户评分分布")
-            st.plotly_chart(fig_star, use_container_width=True)
-    with  co4:
-        reviews=['短评','长评']
-        with st.expander(f"<{film}>-评论", expanded=True):
-            st.subheader('精选评论')
-            option = st.selectbox(
-                '',
-                reviews
-            )
-            if(option=='短评'):
-                index1=scommsDf[scommsDf['star']==5.0].index[0]
-                comment = scommsDf.loc[index1,'comment']
-                user_data = scommsDf.loc[index1,'用户']
-                date_data = scommsDf.loc[index1,'date']
-                homepage = scommsDf.loc[index1,'homepage']
-                comment_display = f"""{comment}
+    if tab == "简介":
+        st.markdown("**🎬成员:**")
+        colist = st.columns(spec=12)
+        avatar_url = avatar_urls[film_index].split(', ')
+        avatar_name = avatar_names[film_index].split(', ')
+        for co in range(2 * len(avatar_url)):
+            with colist[co]:
+                if co % 2 == 0:
+                    ui.avatar(src=avatar_url, key=co, fallback=avatar_name[co // 2][0])
+                else:
+                    st.markdown(avatar_name[co // 2])
+        with st.container(border=True, height=150):
+            st.write(all_data["summary"][film_index])
+    if tab == "评论":
+        colist = st.columns(spec=3)
+        if comm_sel == "短评":
+            comm_list = random.sample(keysCache["短评"], 3)
+        else:
+            comm_list = random.sample(keysCache["长评"], 3)
+        for comm, co in zip(comm_list, colist):
+            with co:
+                try:
+                    with init_connection(db=DB) as r:
+                        value = get_value(_r=r, key=comm)
+                    comment = value["comment"]
+                except KeyError:
+                    comment = value["full_comment"]
+                except Exception as e:
+                    st.error(f"{e}\n数据库连接失败")
+                with st.container(border=True, height=270):
+                    ui.metric_card(title=f"用户: {comm.split(' : ')[3]}", content=comment,
+                                   description=f"{value['date']}留言-⭐{value['star']}", key=str(co))
+    if tab == "分析":
+        tab_1, tab_2, tab_3 = st.tabs(["用户分布饼状图", "用户信息散点图", "影评推荐指数"])
+        with tab_1:
+            # 取出对应电影数据 astype-float型转换成str
+            ipList = usersDf["ip"].astype(str).to_list()
+            # 词频统计
+            ip_counts = dict(collections.Counter(ipList))  # 对IP做词频统计
+            ipdata = pd.DataFrame({
+                "地域": list(ip_counts.keys()),
+                "数目": list(ip_counts.values())
+            })
+            with st.expander(f"<{film}>-饼图", expanded=True):
+                fig1 = pie_chart_module(ipdata, "用户评论分布")
+                st.plotly_chart(fig1, use_container_width=True)
+        with tab_2:
+            idList = usersDf["id"].astype(str)
+            yearList = usersDf["jointime"].to_list()
+            hadseenList = usersDf["hadseen"].fillna(0).to_list()
+            usersdata = pd.DataFrame({
+                "ID": idList,
+                "IP": ipList,
+                "加入年份": yearList,
+                "估算年份": [int(x[0:4]) + int(x[5:7]) / 12 + int(x[8:10]) / 30 for x in yearList],
+                "看过电影": hadseenList
+            })
+            with st.expander(f"<{film}>-散点图", expanded=True):
+                fig2 = point_chart_module(usersdata)
+                st.plotly_chart(fig2, use_container_width=True)
+        with tab_3:
+            co3, co4 = st.columns(spec=2)
+            with co3:
+                starList = scommsDf["star"].astype(str).replace("-1.0", "1.0").tolist()
+                star_map = {"1.0": "很差", "2.0": "较差", "3.0": "还行", "4.0": "推荐", "5.0": "力荐"}
+                starList_mapped = [star_map[star] for star in starList]
+                star_counts = dict(collections.Counter(starList_mapped))
+                star_data = pd.DataFrame({
+                    "星级": list(star_counts.keys()),
+                    "数目": list(star_counts.values())
+                })
+                with st.expander(f"<{film}>-饼图", expanded=True):
+                    fig_star = pie_chart_module(star_data, "用户评分分布")
+                    st.plotly_chart(fig_star, use_container_width=True)
+            with co4:
+                reviews = ['短评', '长评']
+                with st.expander(f"<{film}>-评论", expanded=True):
+                    option = st.selectbox(
+                        'Featured reviews',
+                        reviews
+                    )
+                    if (option == '短评'):
+                        index1 = scommsDf[scommsDf['star'] == 5.0].index[0]
+                        comment = scommsDf.loc[index1, 'comment']
+                        user_data = scommsDf.loc[index1, '用户']
+                        date_data = scommsDf.loc[index1, 'date']
+                        homepage = scommsDf.loc[index1, 'homepage']
+                        comment_display = f"""{comment}
 
-Author    :    {user_data}  
-Date      :    {date_data}
-                """
-                st.text_area('', comment_display, height=250)
-                st.write("如果你对这位用户感兴趣   ,  这是他的主页:")
-                st.markdown(homepage)
-            else:
-                index1 = fcommsDf[(fcommsDf['star'] == 5.0) & (fcommsDf['comment'].str.len() < 200)].index[0]
-                comment = fcommsDf.loc[index1, 'comment']
-                user_data = fcommsDf.loc[index1, '用户']
-                date_data = fcommsDf.loc[index1, 'date']
-                homepage = fcommsDf.loc[index1, 'homepage']
-                comment_display = f"""{comment}
+            Author    :    {user_data}  
+            Date      :    {date_data}
+                            """
+                        st.text_area('', comment_display, height=250)
+                        st.write("If you are interested in this author   ,  here is his homepage:")
+                        st.markdown(homepage)
+                    else:
+                        index1 = fcommsDf[(fcommsDf['star'] == 5.0) & (fcommsDf['comment'].str.len() < 200)].index[0]
+                        comment = fcommsDf.loc[index1, 'comment']
+                        user_data = fcommsDf.loc[index1, '用户']
+                        date_data = fcommsDf.loc[index1, 'date']
+                        homepage = fcommsDf.loc[index1, 'homepage']
+                        comment_display = f"""{comment}
 
-Author    :    {user_data}  
-Date      :    {date_data}
-                                """
-                st.text_area('', comment_display, height=300)
-                st.write("如果你对这位用户感兴趣   ,  这是他的主页:")
-                st.markdown(homepage)
-
+            Author    :    {user_data}  
+            Date      :    {date_data}
+                                            """
+                        st.text_area('', comment_display, height=300)
+                        st.write("If you are interested in this author   ,  here is his homepage:")
+                        st.markdown(homepage)
+    if tab == "词云":
+        if not os.path.isfile(f"{datapath}/new_stopwords.txt"):
+            st.markdown(f"# 在{datapath}没有找到new_stopwords.txt文件")
+        else:
+            co1, co2 = st.columns(spec=[0.6, 0.4])
+            stopwords = read_txt(f"{datapath}/new_stopwords.txt")
+            words = word_filter(comstring=comString, name=film, stopwords=stopwords)
+            # 词频统计
+            word_counts = collections.Counter(words)  # 对分词做词频统计
+            word_counts_top = word_counts.most_common(20)  # 获取最高频的词
+            with co2:
+                # 高频词展示
+                wordTop = pd.DataFrame(word_counts_top).rename(
+                    columns={0: "分词", 1: "频次"})
+                st.dataframe(wordTop, use_container_width=True, hide_index=True)
+                st.info("词云图背景以第一个高频中文词决定", icon="ℹ️")
+            with co1:
+                with st.expander(f"<{film}>-词云图", expanded=True):
+                    if not os.path.isfile(f"{cachepath}/{film}/词云.png"):
+                        # 调用函数+缓存
+                        fig = word_clouds(words=words, hotwords=word_counts_top)
+                        st.image(fig)
+                        if not os.path.exists(f"{cachepath}/{film}"):
+                            os.mkdir(f"{cachepath}/{film}")
+                        fig.save(f"{cachepath}/{film}/词云.png")
+                    else:  # 存在词云文件
+                        # 读取词云图
+                        st.image(f"{cachepath}/{film}/词云.png")

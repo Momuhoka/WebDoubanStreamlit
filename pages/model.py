@@ -7,7 +7,7 @@ import pandas as pd
 import thulac
 from stqdm import stqdm
 
-from data.modules import diy_menu, pages_dict
+from data.modules import diy_menu, pages_dict, datapath
 
 # 设置全局属性
 st.set_page_config(
@@ -66,13 +66,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 # 自定义回调函数
 from data.keras.streamlit_callback import StreamlitLambdaCallback
 
-# 缓存路径 ./cache
-cachepath = "./cache"
-if not os.path.exists(cachepath):
-    os.mkdir(cachepath)
-
 # 部分文件存储位置
-datapath = "./data"
 if not os.path.exists(f"{datapath}/keras/saves"):
     os.makedirs(f"{datapath}/keras/saves")
 
@@ -488,7 +482,7 @@ if train_module:
                     # 获取模型字典的参数
                     model_vocab_size = model.get_layer('embedding').input_dim
                     model_embedding_dim = model.get_layer('embedding').output_dim
-                    model_max_length = model.get_layer('embedding').input_length
+                    model_max_length = model.input_shape[1]
                     # 检查
                     vocab_size_check = vocab_size == model_vocab_size
                     embedding_dim_check = embedding_dim == model_embedding_dim

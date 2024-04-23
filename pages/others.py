@@ -1,92 +1,49 @@
-import os
-import pickle
-import time
+from time import sleep
 
-import pandas as pd
+import redis
 import streamlit as st
+import pandas as pd
 
-from data.modules import diy_menu, pages_dict
-# 自定义sensiment函数
-from data.snownlp import streamlit_snownlp as streamsensiment
-from stqdm import stqdm
+data = pd.read_csv("data/douban_top250.txt", delimiter='\t', header=None)
+st.dataframe(data, use_container_width=True)
 
-# 设置全局属性
-st.set_page_config(
-    page_title='DEBUG测试',
-    page_icon='💡',
-    layout='wide'
-)
-
-# 缓存路径 ./cache
-cachepath = "./cache"
-if not os.path.exists(cachepath):
-    os.mkdir(cachepath)
-
-# 部分文件存储位置
-datapath = "./data"
-if not os.path.exists(f"{datapath}/snownlp"):
-    os.mkdir(f"{datapath}/snownlp")
+redis_pool = redis.ConnectionPool(host='175.178.4.58', port=6379, password="momuhoka", decode_responses=True, db=3)
 
 
-# n/名词 np/人名 ns/地名 ni/机构名 nz/其它专名
-# m/数词 q/量词 mq/数量词 t/时间词 f/方位词 s/处所词
-# v/动词 a/形容词 d/副词 h/前接成分 k/后接成分 i/习语
-# j/简称 r/代词 c/连词 p/介词 u/助词 y/语气助词
-# e/叹词 o/拟声词 g/语素 w/标点 x/其它
-
-def read_data(_type: str, path: str):
-    if _type == "csv":
-        _data = pd.read_csv(path, index_col=0)
-    elif _type == "pkl":
-        with open(path, "rb") as _file:
-            _data = pickle.load(_file)
-    else:
-        with open(path, mode="r", encoding="utf-8") as _file:
-            _data = [line.strip('\n') for line in _file.readlines()]
-    return _data
-
-
-def save_file(star: int, _text: str):
-    if star > 3:
-        with open(f"{datapath}/snownlp/pos.txt", mode="a", encoding="utf-8") as _file:
-            _file.write(f"{_text}\n")
-    else:
-        with open(f"{datapath}/snownlp/neg.txt", mode="a", encoding="utf-8") as _file:
-            _file.write(f"{_text}\n")
+def insert2redis(value, dictinfo):
+    retry_count = 3  # 尝试次数，使用多线程后可能导致同一时间存储大量数据
+    # 一般数据库用的db0但是由于IP池使用了redis的db0，改为db1
+    r = redis.Redis(connection_pool=redis_pool)
+    while retry_count > 0:
+        try:
+            # redis默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令
+            pipe = r.pipeline()
+            for pair in dictinfo.items():  # 直接传递字典可能超过最大参数限制，通过看hset源码拆分传输
+                pipe.hset(value, items=pair)  # 存储对应key值
+            pipe.execute()  # pipe相当于缓存指令然后一口气发送，一定要加执行
+            return True
+        except Exception as e:
+            retry_count -= 1
+            print(f"\n数据库存储异常...\n相关信息: {value}-{dictinfo}\n{e}")
+    print("redis连接异常，存储失败")
+    return False
 
 
-# 页面菜单
-diy_menu(_page="其他", _page_dict=pages_dict)
+films = data[0].to_list()
+film_pages = data[1].to_list()
+film_summaries = data[2].to_list()
+film_actors = data[3].to_list()
+film_actor_names = data[4].to_list()
+# st.table(films)
+dict_lists = []
+for index, film in enumerate(films):
+    dict_lists.append({"cover": film_pages[index],
+                       "summary": film_summaries[index],
+                       "avatars": film_actors[index],
+                       "names": film_actor_names[index]})
 
-with st.container(border=True):
-    if st.button("生成好评/差评txt文件", use_container_width=True):
-        s = time.time()
-
-        data = read_data(_type="csv", path=f"{datapath}/cache.csv")
-        data.index = data.index + 1
-        data.rename_axis("序列", inplace=True)
-        data = data.sample(frac=0.01)
-        st.dataframe(data)
-        holder = st.empty()
-        stqdm(st_container=holder).pandas(desc="数据处理进度")
-        data.progress_apply(lambda x: save_file(x["star"], x["comment"]), axis=1)
-        e = time.time()
-        holder.success("**成功生成数txt:** {:.2f}s".format(e - s), icon='✅')
-
-# snownlp分析很慢
-with st.container(border=True):
-    if st.button("开始训练", use_container_width=True):
-        pos_text = read_data(_type="txt", path=f"{datapath}/snownlp/pos.txt")
-        neg_text = read_data(_type="txt", path=f"{datapath}/snownlp/neg.txt")
-        with st.spinner("运行中..."):
-            streamsensiment.train(f"{datapath}/snownlp/neg.txt", f"{datapath}/snownlp/pos.txt")
-            streamsensiment.save(f"{datapath}/snownlp/sentiment.marshal")
-        st.success("训练完毕")
-
-if os.path.isfile(f"{datapath}/snownlp/sentiment.marshal"):
-    text = st.chat_input("测试")
-    with st.container(border=True):
-        snownlp_model = streamsensiment.load(f"{datapath}/snownlp/sentiment.marshal")
-        result = snownlp_model.sentiment(text)
-        st.markdown(f'''> **输入:** {text}
-> **结果:** {result}''')
+new_empty = st.empty()
+if new_empty.button("开始存储", disabled=False):
+    for film, dict_list in zip(films, dict_lists):
+        new_empty.dataframe(dict_list)
+        insert2redis(f"电影 : {film} : 封面", dict_list)

@@ -1,18 +1,18 @@
-import base64
 import collections
 import os
+import random
 
 import pandas as pd
 import streamlit as st
-from PIL import Image
 import requests
-from io import BytesIO
 import streamlit_shadcn_ui as ui
+from stqdm import stqdm
 from streamlit_image_select import image_select
 from streamlit_star_rating import st_star_rating
 
 from data.modules import diy_menu, pages_dict, cachepath, read_txt, keys_cache, read_excel, \
-    pie_chart_module, point_chart_module, datapath, word_filter, word_clouds, initialize
+    pie_chart_module, point_chart_module, datapath, word_filter, word_clouds, initialize, init_connection, get_value, \
+    get_values, all_cache, checkcache, film_cache, get_keysCache
 
 # 初始化
 initialize()
@@ -20,21 +20,71 @@ initialize()
 # 默认数据库
 DB = 3
 
+# 设置全局属性
+st.set_page_config(
+    page_title='豆瓣宇宙',
+    page_icon='♾️',
+    layout='wide',
+    initial_sidebar_state='collapsed'
+)
+
 # 页面菜单
 diy_menu(_page="我的主页", _page_dict=pages_dict)
 
+# 获取封面相关信息
+@st.cache_data
+def get_covers(_db: int):
+    try:
+        with init_connection(db=_db) as _r:
+            result = get_values(_r=_r, keys=[f"电影 : {_} : 封面" for _ in selected_films])
+    except Exception as e:
+        st.error(f"{e}\n数据库连接失败")
+    return result
+
+
+all_data = get_covers(_db=DB)
+image_urls = all_data["cover"]
+# image_urls = ["https://img3.doubanio.com/view/photo/s_ratio_poster/public/p480747492.webp",
+#               "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2561716440.webp",
+#               "https://img3.doubanio.com/view/photo/s_ratio_poster/public/p2372307693.webp"]
+avatar_urls = all_data["avatars"]
+avatar_names = all_data["names"]
+
+
+# 发起GET请求获取图片内容
+@st.cache_data(show_spinner="正在获取封面...")
+def get_cover(url: str, _film: str):
+    if not os.path.exists(f"{cachepath}/{_film}"):
+        # 判断目录是否存在，不存在则创建
+        os.mkdir(f"{cachepath}/{_film}")
+    if not os.path.exists(f"{cachepath}/{_film}/images"):
+        os.mkdir(f"{cachepath}/{_film}/images")
+    if not os.path.exists(f"{cachepath}/{_film}/images/cover.jpg"):
+        response = requests.get(url)
+        with open(f"{cachepath}/{_film}/images/cover.jpg", 'wb') as f:
+            f.write(response.content)
+    Image_path = f"{os.getcwd()}\\cache\\{_film}\\images\\cover.jpg"
+    return Image_path
+
+
+# @st.cache_data(show_spinner="正在获取头像...")
+# def get_avatars(urls: list[str], _film: str):
+#     Image_paths = []
+#     if not os.path.exists(f"{cachepath}/{_film}"):
+#         # 判断目录是否存在，不存在则创建
+#         os.mkdir(f"{cachepath}/{_film}")
+#     if not os.path.exists(f"{cachepath}/{_film}/images"):
+#         os.mkdir(f"{cachepath}/{_film}/images")
+#     for url in urls:
+#         response = requests.get(url)
+#         if not os.path.exists(f"{cachepath}/{_film}/images/{urls.index(url)}.jpg"):
+#             with open(f"{cachepath}/{_film}/images/{urls.index(url)}.jpg", 'wb') as f:
+#                 f.write(response.content)
+#         Image_paths.append(f"{os.getcwd()}\\cache\\{_film}\\images\\{urls.index(url)}.jpg")
+#     return Image_paths
+
 # 只读取键值缓存
-if os.path.isfile(f"{cachepath}/键值.txt"):
-    # 文件信息需要拆分
-    keysString = read_txt(f"{cachepath}/键值.txt")
-    keysCache = {}
-    # 列表的字典 {x: [a,b,c...], y: [d,e,f...]...}
-    for index, keyString in zip(["详情", "用户", "短评", "长评"], keysString):
-        keysList = keyString.split('|')
-        keysCache[index] = keysList
-else:
-    # 列表的字典 {x: [a,b,c...], y: [d,e,f...]...}
-    keysCache = keys_cache(db=DB)
+keysCache = get_keysCache(_db=DB)
 
 # 获取电影列表
 films = [filmkey.split(" : ")[1] for filmkey in keysCache["详情"]]
@@ -43,29 +93,54 @@ selected_films = st.multiselect(label="搜索电影", options=films, default=Non
 if not selected_films:
     selected_films = films
 
-image_urls = ["https://img3.doubanio.com/view/photo/s_ratio_poster/public/p480747492.webp",
-            "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2561716440.webp",
-            "https://img3.doubanio.com/view/photo/s_ratio_poster/public/p2372307693.webp"]
-
-PILimages = []
-# 发起GET请求获取图片内容
-for url in image_urls:
-    response = requests.get(url)
-    encoded = base64.b64encode(response.content).decode()
-    PILimages.append(Image.open(BytesIO(response.content)))
 
 col_1, col_2 = st.columns(spec=[0.25, 0.75])
 
+cover_paths = []
+# 获取所有图片
+for film in stqdm(films, desc="进度"):
+    url = image_urls[films.index(film)]
+    try:
+        cover_paths.append(get_cover(url=url, _film=film))
+    except Exception as e:
+        st.write(f"{e}\n{film}")
+        break
+
 # 选择电影
-img = image_select(
+film_index = image_select(
     label="选择电影",
-    images=PILimages,
+    images=cover_paths,
     use_container_width=False,
-    captions=films[:3],
+    captions=films,
     return_value="index",
 )
-film = films[img]
+film = films[film_index]
 
+# 侧边栏+所有缓存任务
+with st.sidebar:
+    st.title("电影信息速览")
+    # 模式
+    with st.form("缓存操作:"):
+        mode = st.toggle("强制覆盖", help="强制覆盖耗时更久", value=False)
+        if st.form_submit_button("全部缓存",
+                                 type="primary",
+                                 use_container_width=True):
+            # 全部缓存
+            all_cache(_db=DB, _mode=mode)
+    # 手动展开
+    check = st.checkbox("查看缓存状态", value=False)
+    cache_status = checkcache(film=film)
+    # 展示缓存
+    if check:
+        # 显示缓存状态
+        status = pd.DataFrame(cache_status).T \
+            .rename_axis(index=film) \
+            .rename(columns={0: "是否缓存", 1: "缓存时间"})
+        st.dataframe(status, use_container_width=True)
+
+# 得到电影后就可以开始缓存-放在all_cache之后
+if not mode:
+    film_cache(_db=DB, film=film, keysCache=keysCache, mode=False)
 # 图表的基础数据源
 usersDf = read_excel(f"{cachepath}/{film}/用户.xlsx")
 scommsDf = read_excel(f"{cachepath}/{film}/短评.xlsx")
@@ -95,15 +170,22 @@ usersDf.dropna(axis=0, how="any", subset=["ip"], inplace=True)
 
 with col_1:
     with st.container(border=True):
-        st.image(PILimages[img], use_column_width=True)
+        st.image(cover_paths[film_index], use_column_width=True)
 with col_2:
+    try:
+        with init_connection(db=DB) as r:
+            value = get_value(_r=r, key=f"电影 : {film} : 详情")
+    except Exception as e:
+        st.error(f"{e}\n数据库连接失败")
     col_2_1, col_2_2 = st.columns(spec=[0.7, 0.3])
     with col_2_1:
-        st.markdown(f"#### {films[img]}")
-        st.markdown(f"**投票数: {len(films)}**")
+        st.markdown(f"#### 🎞️{films[film_index]}")
+        st.markdown(f"**🗳投票数: {value['votes']}**  **🍿类型: {value['filmtype']}**"
+                    f"  **📀年份: {value['year']}**  **⌛时长: {value['times']}min**"
+                    f"  **📜语言: {value['language']}**")
         tab = ui.tabs(options=["简介", "评论", "分析", "词云"], default_value="简介")
     with col_2_2:
-        st_star_rating(label="推荐指数:", maxValue=5, defaultValue=img+3, read_only=True)
+        st_star_rating(label="推荐指数:", maxValue=5, defaultValue=round(float(value["score"])/2), read_only=True)
         if tab == "评论":
             comm_sel = st.selectbox(label="**随机评论:**", options=["短评", "长评"])
         if tab == "词云":
@@ -114,24 +196,37 @@ with col_2:
                 # 清除st.cahce_data的图片缓存
                 word_clouds.clear()
     if tab == "简介":
-        st.markdown("**人员:**")
-        colist = st.columns(spec=16)
-        for co in range(2*(img+2)):
+        st.markdown("**🎬成员:**")
+        colist = st.columns(spec=12)
+        avatar_url = avatar_urls[film_index].split(', ')
+        avatar_name = avatar_names[film_index].split(', ')
+        for co in range(2 * len(avatar_url)):
             with colist[co]:
                 if co % 2 == 0:
-                    ui.avatar(src="", key=co)
+                    ui.avatar(src=avatar_url, key=co, fallback=avatar_name[co // 2][0])
                 else:
-                    st.markdown(f"*Number.{img}*")
+                    st.markdown(avatar_name[co // 2])
         with st.container(border=True, height=150):
-            st.markdown("Information.")
+            st.write(all_data["summary"][film_index])
     if tab == "评论":
         colist = st.columns(spec=3)
-        for co in colist:
+        if comm_sel == "短评":
+            comm_list = random.sample(keysCache["短评"], 3)
+        else:
+            comm_list = random.sample(keysCache["长评"], 3)
+        for comm, co in zip(comm_list, colist):
             with co:
-                if comm_sel == "短评":
-                    ui.metric_card(title="id", content="short messages.", description="time-ip", key=str(co))
-                else:
-                    ui.metric_card(title="id", content="long messages.", description="time-ip", key=str(co))
+                try:
+                    with init_connection(db=DB) as r:
+                        value = get_value(_r=r, key=comm)
+                    comment = value["comment"]
+                except KeyError:
+                    comment = value["full_comment"]
+                except Exception as e:
+                    st.error(f"{e}\n数据库连接失败")
+                with st.container(border=True, height=270):
+                    ui.metric_card(title=f"用户: {comm.split(' : ')[3]}", content=comment,
+                                   description=f"{value['date']}留言-⭐{value['star']}", key=str(co))
     if tab == "分析":
         tab_1, tab_2, tab_3 = st.tabs(["用户分布饼状图", "用户信息散点图", "影评推荐指数"])
         with tab_1:
@@ -237,4 +332,3 @@ with col_2:
                     else:  # 存在词云文件
                         # 读取词云图
                         st.image(f"{cachepath}/{film}/词云.png")
-

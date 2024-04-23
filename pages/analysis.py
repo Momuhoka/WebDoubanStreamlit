@@ -7,7 +7,7 @@ from data.modules import (initialize, cachepath, read_txt, read_excel,
                           keys_cache, all_cache, checkcache,
                           film_cache, pie_chart_module, point_chart_module,
                           datapath, word_filter, word_clouds,
-                          diy_menu, pages_dict)
+                          diy_menu, pages_dict, get_keysCache)
 # 初始化
 initialize()
 
@@ -20,27 +20,15 @@ DB = 3
 # 将此参数设置为 True 可能会导致内存使用过多，因为 widget 值被视为缓存的附加输入参数
 
 # 页面菜单
-diy_menu(_page="分析", _page_dict=pages_dict)
+diy_menu(_page="电影信息一览", _page_dict=pages_dict)
 
 # 默认渲染到主界面
 st.title('豆瓣TOP250电影')
 st.info('电影详情一览')
-st.markdown('> st.cahce 缓存返回数据的函数-检查到更新才会刷新-请检查使用正误')
 
 # 网页界面
 
-# 只读取键值缓存
-if os.path.isfile(f"{cachepath}/键值.txt"):
-    # 文件信息需要拆分
-    keysString = read_txt(f"{cachepath}/键值.txt")
-    keysCache = {}
-    # 列表的字典 {x: [a,b,c...], y: [d,e,f...]...}
-    for index, keyString in zip(["详情", "用户", "短评", "长评"], keysString):
-        keysList = keyString.split('|')
-        keysCache[index] = keysList
-else:
-    # 列表的字典 {x: [a,b,c...], y: [d,e,f...]...}
-    keysCache = keys_cache(db=DB)
+keysCache = get_keysCache(_db=DB)
 
 # 获取电影列表
 films = [filmkey.split(" : ")[1] for filmkey in keysCache["详情"]]
@@ -49,31 +37,31 @@ film = st.selectbox(
     "电影列表", films, help="输入以搜索"
 )
 
-# 侧边栏+所有缓存任务
-with st.sidebar:
-    st.title("电影信息速览")
-    # 模式
-    with st.form("缓存操作:"):
-        mode = st.toggle("强制覆盖", help="强制覆盖耗时更久", value=False)
-        if st.form_submit_button("全部缓存",
-                                 type="primary",
-                                 use_container_width=True):
-            # 全部缓存
-            all_cache(_db=DB, _mode=mode)
-    # 手动展开
-    check = st.checkbox("查看缓存状态", value=False)
-    cache_status = checkcache(film=film)
-    # 展示缓存
-    if check:
-        # 显示缓存状态
-        status = pd.DataFrame(cache_status).T \
-            .rename_axis(index=film) \
-            .rename(columns={0: "是否缓存", 1: "缓存时间"})
-        st.dataframe(status, use_container_width=True)
-
-# 得到电影后就可以开始缓存-放在all_cache之后
-if not mode:
-    film_cache(_db=DB, film=film, keysCache=keysCache, mode=False)
+# # 侧边栏+所有缓存任务
+# with st.sidebar:
+#     st.title("电影信息速览")
+#     # 模式
+#     with st.form("缓存操作:"):
+#         mode = st.toggle("强制覆盖", help="强制覆盖耗时更久", value=False)
+#         if st.form_submit_button("全部缓存",
+#                                  type="primary",
+#                                  use_container_width=True):
+#             # 全部缓存
+#             all_cache(_db=DB, _mode=mode)
+#     # 手动展开
+#     check = st.checkbox("查看缓存状态", value=False)
+#     cache_status = checkcache(film=film)
+#     # 展示缓存
+#     if check:
+#         # 显示缓存状态
+#         status = pd.DataFrame(cache_status).T \
+#             .rename_axis(index=film) \
+#             .rename(columns={0: "是否缓存", 1: "缓存时间"})
+#         st.dataframe(status, use_container_width=True)
+#
+# # 得到电影后就可以开始缓存-放在all_cache之后
+# if not mode:
+#     film_cache(_db=DB, film=film, keysCache=keysCache, mode=False)
 
 choice = st.selectbox(
     "选择", ["详情", "用户", "短评", "长评"]

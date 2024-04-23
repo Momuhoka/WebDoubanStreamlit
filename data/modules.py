@@ -13,6 +13,11 @@ from PIL import Image, ImageFont, ImageDraw
 from streamlit_option_menu import option_menu
 from wordcloud import WordCloud
 
+# 页面字典
+pages_dict = {"主页": "main.py", "模型": "pages/model.py",
+              "电影信息一览": "pages/analysis.py", "电影整体分析": "pages/jared_.py",
+              "电影球云图": "pages/hua_.py", "工具": "pages/settings.py"}
+
 
 # 初始化
 def initialize():
@@ -329,15 +334,27 @@ def word_clouds(words: list, hotwords: list):
     return wcImage
 
 
-# 页面字典
-pages_dict = {"主页": "main.py", "模型": "pages/model.py", "其他": "pages/others.py", "工具": "pages/settings.py", "我的主页": "pages/momuhoka.py","电影整体分析":"pages/jared_.py","电影球云图":"pages/hua_.py"}
-
-
 # 自定义的page菜单
 def diy_menu(_page: str, _page_dict: dict) -> None:
     pages = list(_page_dict.keys())
     page = option_menu(None, pages,
-                       icons=['house', 'cloud-upload', "list-task", 'gear'],
+                       icons=['house', 'cloud-upload', "list-task", 'activity', 'back', 'gear'],
                        menu_icon="cast", default_index=pages.index(_page), orientation="horizontal")
     if page != _page:
         st.switch_page(_page_dict[page])
+
+def get_keysCache(_db: int):
+    # 只读取键值缓存
+    if os.path.isfile(f"{cachepath}/键值.txt"):
+        # 文件信息需要拆分
+        keysString = read_txt(f"{cachepath}/键值.txt")
+        keysCache = {}
+        # 列表的字典 {x: [a,b,c...], y: [d,e,f...]...}
+        for index, keyString in zip(["详情", "用户", "短评", "长评"], keysString):
+            keysList = keyString.split('|')
+            keysCache[index] = keysList
+    else:
+        # 列表的字典 {x: [a,b,c...], y: [d,e,f...]...}
+        keysCache = keys_cache(db=_db)
+    return keysCache
+

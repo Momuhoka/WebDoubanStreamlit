@@ -479,6 +479,9 @@ if train_module:
             tc1, tc2 = st.columns(spec=2)
             with st.container(border=True):
                 with tc1:
+                    # 使用一个假的输入来编译模型，以触发输入形状的定义
+                    fake_input = np.zeros((1, 100))
+                    model.predict(fake_input)
                     # 获取模型字典的参数
                     model_vocab_size = model.get_layer('embedding').input_dim
                     model_embedding_dim = model.get_layer('embedding').output_dim
@@ -582,12 +585,15 @@ if use_module:
     # 模型预测输入
     inputwords = st.chat_input("现在想说点什么?", disabled=not next_check)
     if inputwords:
+        # 使用一个假的输入来编译模型，以触发输入形状的定义
+        fake_input = np.zeros((1, 100))
+        predict_model.predict(fake_input)
         # 分词
         cutwords = jieba.lcut(inputwords)
         # 映射
         predict_sequences = predict_tokenizer.texts_to_sequences([' '.join(cutwords)])
         # 补全
-        predict_model_max_length = predict_model.get_layer('embedding').input_length  # 获取模型字典的参数
+        predict_model_max_length = predict_model.input_shape[1]  # 获取模型字典的参数
         predict_padded = pad_sequences(predict_sequences, maxlen=predict_model_max_length, padding="post",
                                        truncating="post")
         # 输入然后进行预测

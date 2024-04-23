@@ -8,7 +8,7 @@ from data.modules import (initialize, cachepath, read_txt, read_excel,
                           film_cache, pie_chart_module, point_chart_module,
                           datapath, word_filter, word_clouds,
                           diy_menu, pages_dict, init_connection, get_values)
-diy_menu(_page="hua的主页", _page_dict=pages_dict)
+diy_menu(_page="电影球云图", _page_dict=pages_dict)
 import pandas as pd
 import streamlit as st
 from streamlit_agraph import agraph, Node, Edge, Config
@@ -31,7 +31,7 @@ def load_relations1(file_path):
         # 实际应用中可能需要从数据库或其他地方获取更多信息
         nodes.append(Node(id=start_ids, label=filmname, color="green"))
         nodes.append(Node(id=end_ids, label=type, color="yellow"))
-        edges.append(Edge(source=start_ids, target=end_ids, label=relations))
+        edges.append(Edge(source=start_ids, target=end_ids))
 
     # 去除重复的节点
     nodes = list({node.id: node for node in nodes}.values())
@@ -51,15 +51,20 @@ def load_relations2(file_path):
         # 实际应用中可能需要从数据库或其他地方获取更多信息
         nodes.append(Node(id=start_ids, label=filmname, color="pink"))
         nodes.append(Node(id=end_ids, label=director, color="black"))
-        edges.append(Edge(source=start_ids, target=end_ids, label=relations))
+        edges.append(Edge(source=start_ids, target=end_ids,label=relations))
 
     # 去除重复的节点
     nodes = list({node.id: node for node in nodes}.values())
     return nodes,edges
 # 主函数，用于运行Streamlit应用
 def fuc1():
-    st.title("Movie Relations Graph")
-
+    st.title("电影类型关系图")
+    st.markdown('''
+    :red[ps:] :orange[球云图] :green[中心] :blue[可移动] :violet[,]
+    :gray[大小] :rainbow[可缩放].''')
+    st.markdown('''
+    :red[ps:] :orange[球云图可以反映] :green[电影与类型] :blue[之间的关系,] :violet[其中黄色小球代表]
+    :gray[不同的类型,] :rainbow[绿色小球代表电影名].''')
     # 加载关系，并创建图形的节点和边
     nodes1, edges1 = [], []
     #for relation in ['belong_to']:
@@ -68,12 +73,19 @@ def fuc1():
     edges1.extend(e)
 
     # 设置图形的配置
-    config = Config(width=5000, height=5000, directed=True, physics=True,hierarchical=True)
+    config = Config(width=2000, height=2000, directed=True, physics=True,hierarchical=True,edgeMinimization=False,nodeSpacing=10,levelSeparation=10)
 
     # 创建图形
     agraph(nodes=nodes1, edges=edges1, config=config)
 def fuc2():
 # 加载关系，并创建图形的节点和边
+    st.title("导演与电影关系图")
+    st.markdown('''
+    :red[ps:] :orange[球云图] :green[中心] :blue[可移动] :violet[ , ]
+    :gray[大小] :rainbow[可缩放].''')
+    st.markdown('''
+    :red[ps:] :orange[球云图可以反映] :green[电影与导演] :blue[之间的关系 , ] :violet[ 其中粉色小球代表]
+    :gray[不同的电影 , ] :rainbow[ 黑色小球代表导演].''')
     nodes2, edges2 = [], []
     #for relation in ['directed']:
     d, g = load_relations2(f'D:\\3160257581\FileRecv\\mm.csv')
@@ -81,12 +93,12 @@ def fuc2():
     edges2.extend(g)
 
     # 设置图形的配置
-    config = Config(width=5000, height=5000, directed=True, physics=True,hierarchical=False)
+    config = Config(width=2000, height=2000, directed=True, physics=True,hierarchical=False)
 
     # 创建图形
     agraph(nodes=nodes2, edges=edges2, config=config)
 if __name__ == "__main__":
-    tab_1,tab_2=st.tabs(["电影类型球云图","导演与演员关系球云图"])
+    tab_1,tab_2=st.tabs(["电影类型球云图","导演与电影关系球云图"])
     with tab_1:
         fuc1()
     with tab_2:

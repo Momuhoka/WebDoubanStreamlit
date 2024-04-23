@@ -29,9 +29,9 @@ def get_Color(movie_count):
         return [153, 255, 153, 255]  # 绿色
     else:
         return [51, 204, 255, 255]   # 蓝色
-diy_menu(_page="jared的主页", _page_dict=pages_dict)
+diy_menu(_page="电影整体分析", _page_dict=pages_dict)
 # 初始化
-initialize()
+#initialize()
 
 # 使用的数据库
 DB = 3
@@ -42,8 +42,6 @@ DB = 3
 # 对缓存函数中的小部件的支持目前处于实验阶段
 # 将此参数设置为 True 可能会导致内存使用过多，因为 widget 值被视为缓存的附加输入参数
 
-# 页面菜单
-diy_menu(_page="主页", _page_dict=pages_dict)
 st.title('豆瓣TOP250电影')
 st.info('电影整体概况')
 # 默认渲染到主界面
@@ -68,7 +66,7 @@ with init_connection(db=DB) as r:
     infos_dicts = get_values(_r=r, keys=infos)
 # show
 st.dataframe(infos_dicts)
-tab_1, tab_2 ,tab_3= st.tabs(["电影评论", "电影分类","影评推荐指数"])
+tab_1, tab_2 ,tab_3,tab_4 = st.tabs(["电影评论", "电影分类","影评推荐指数","筛选电影"])
 with tab_1:
     col_1, col_2 = st.columns(spec=2,gap='large')
     with col_1:
@@ -161,6 +159,43 @@ with tab_3:
             sorted_df_1 = filtered_df_1.sort_values(by='score', ascending=False).reset_index(drop=True)
             st.subheader(f"{country_choice}电影推荐如下：")
             st.write(sorted_df_1)
+with tab_4:
+    col_7, col_8 = st.columns(spec=2, gap='large')
+    with col_7:
+        with st.expander(f"电影导演查询", expanded=True):
+            # 提取导演列表
+            directors = sorted(infos_dicts['director'].unique())
+            st.subheader('选择导演')
+            # 创建搜索框
+            selected_director = st.selectbox('', directors)
+
+            # 根据所选导演过滤数据
+            filtered_df_2= infos_dicts.query("director == @selected_director")
+
+            # 显示 DataFrame
+            st.write(filtered_df_2)
+    with col_8:
+        with st.expander(f"电影演员查询",expanded=True):
+            st.subheader('选择演员')
+            all_actors = set()
+            for actors in infos_dicts['actor'].str.split(' / '):
+                all_actors.update(actors)
+            all_actors = sorted(all_actors)
+
+            # 创建下拉选项框供用户选择演员
+            selected_actor = st.selectbox('选择演员', all_actors)
+
+            # 根据所选演员过滤数据
+            filtered_rows = []
+            for index, row in infos_dicts.iterrows():
+                if selected_actor in row['actor']:
+                    filtered_rows.append(row)
+
+            filtered_df = pd.DataFrame(filtered_rows)
+
+            # 显示 DataFrame
+            st.write(filtered_df)
+
 
 
 

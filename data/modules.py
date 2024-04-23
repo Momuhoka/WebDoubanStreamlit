@@ -330,7 +330,7 @@ def word_clouds(words: list, hotwords: list):
 
 
 # 页面字典
-pages_dict = {"主页": "main.py", "模型": "pages/model.py", "其他": "pages/others.py", "工具": "pages/settings.py", "我的主页": "pages/momuhoka.py","jared的主页":"pages/jared_.py","hua的主页":"pages/hua_.py"}
+pages_dict = {"主页": "main.py", "模型": "pages/model.py", "其他": "pages/others.py", "工具": "pages/settings.py", "我的主页": "pages/momuhoka.py","电影整体分析":"pages/jared_.py","电影球云图":"pages/hua_.py"}
 
 
 # 自定义的page菜单

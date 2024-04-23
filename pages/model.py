@@ -479,6 +479,9 @@ if train_module:
             tc1, tc2 = st.columns(spec=2)
             with st.container(border=True):
                 with tc1:
+                    # 使用一个假的输入来编译模型，以触发输入形状的定义
+                    fake_input = np.zeros((1, max_length))
+                    model.predict(fake_input)
                     # 获取模型字典的参数
                     model_vocab_size = model.get_layer('embedding').input_dim
                     model_embedding_dim = model.get_layer('embedding').output_dim

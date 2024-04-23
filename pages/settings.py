@@ -14,17 +14,17 @@ diy_menu(_page="工具", _page_dict=pages_dict)
 # 默认数据库
 DB = 3
 
-@st.cache_data(ttl=300,  # Cache data for 5 min (=300 seconds)
-               show_spinner="检查数据文件状态...")
-def checkdatafile(path: str):
-    walkers = os.listdir(path)
-    filespath = [f"{path}/{walker}" for walker in walkers if not os.path.isfile(f"{path}/{walker}")]
-    for _filepath in filespath:
-        if not os.path.isfile(f"{_filepath}/短评.xlsx"):
-            return f"{_filepath}/短评.xlsx", False
-        if not os.path.isfile(f"{_filepath}/长评.xlsx"):
-            return f"{_filepath}/长评.xlsx", False
-    return filespath, True
+# @st.cache_data(ttl=300,  # Cache data for 5 min (=300 seconds)
+#                show_spinner="检查数据文件状态...")
+# def checkdatafile(path: str):
+#     walkers = os.listdir(path)
+#     filespath = [f"{path}/{walker}" for walker in walkers if not os.path.isfile(f"{path}/{walker}")]
+#     for _filepath in filespath:
+#         if not os.path.isfile(f"{_filepath}/短评.xlsx"):
+#             return f"{_filepath}/短评.xlsx", False
+#         if not os.path.isfile(f"{_filepath}/长评.xlsx"):
+#             return f"{_filepath}/长评.xlsx", False
+#     return filespath, True
 
 
 def read_data(_type: str, path: str):

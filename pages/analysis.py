@@ -132,7 +132,7 @@ with tab_1:
             "ID": idList,
             "IP": ipList,
             "加入年份": yearList,
-            "估算年份": [int(x[0:4]) + int(x[5:7]) / 12 + int(x[8:10]) / 30 for x in yearList],
+            "豆瓣网龄": [2024-int(x[0:4]) for x in yearList],
             "看过电影": hadseenList
         })
         with st.expander(f"<{film}>-散点图", expanded=True):

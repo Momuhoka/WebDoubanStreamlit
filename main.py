@@ -40,7 +40,6 @@ selected_films = st.multiselect(label="搜索电影", options=films, default=Non
 if not selected_films:
     selected_films = films
 
-
 # 获取封面相关信息
 def get_covers(_db: int):
     try:
@@ -61,7 +60,7 @@ avatar_names = all_data["names"]
 
 
 # 发起GET请求获取图片内容
-@st.cache_data(show_spinner="正在获取封面...")
+@st.cache_data(show_spinner="正在获取封面...", ttl=300)
 def get_cover(url: str, _film: str):
     if not os.path.exists(f"{cachepath}/{_film}"):
         # 判断目录是否存在，不存在则创建
@@ -194,7 +193,7 @@ with col_2:
                 # 清除st.cahce_data的图片缓存
                 word_clouds.clear()
     if tab == "简介":
-        st.markdown("**🎬成员:**")
+        st.markdown("**🎬演职员:**")
         colist = st.columns(spec=12)
         avatar_url = avatar_urls[film_index].split(', ')
         avatar_name = avatar_names[film_index].split(', ')
@@ -209,9 +208,9 @@ with col_2:
     if tab == "评论":
         colist = st.columns(spec=3)
         if comm_sel == "短评":
-            comm_list = random.sample(keysCache["短评"], 3)
+            comm_list = random.sample([_ for _ in keysCache["短评"] if f"电影 : {film} : 短评" in _], 3)
         else:
-            comm_list = random.sample(keysCache["长评"], 3)
+            comm_list = random.sample([_ for _ in keysCache["长评"] if f"电影 : {film} : 长评" in _], 3)
         for comm, co in zip(comm_list, colist):
             with co:
                 try:

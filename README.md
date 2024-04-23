@@ -1,4 +1,14 @@
-# steamlit可视化参考代码 #
+## pip库安装 ##
+**找到requirements.txt文件目录**
+
+**一般就在本目录下:**
+``` bash
+$ pip install -r .\requirements.txt --upgrade
+```
+
+***upgrade参数是更新，建议加上防止版本过低***
+
+# steamlit可视化代码 #
 *使用方法：*
 ``` bash
 $ streamlit run ./main.py
@@ -8,7 +18,7 @@ $ streamlit run ./main.py
 
 ***密码: 2tst***
 
-## 关于添加自定义页面 ##
+### 关于添加自定义页面 ###
 **由于修改了菜单模式，失去了自动读取页面的能力:**
 
 **自定义菜单的页面放在了 *data/modules.py* 文件里，类型为 *字符串字典***
@@ -19,11 +29,11 @@ $ streamlit run ./main.py
 ``` code
 {"..": "...", "我的主页": "pages/my_page.py"}
 ```
-## 关于pip库安装 ##
-**找到requirements.txt文件目录**
 
-**例如就在本目录下:**
-``` bash
-$ pip install -r .\requirements.txt --upgrade
-```
-***upgrade参数是更新，建议加上防止版本过低***
+### 关于模型界面可能报错缺失csv文件问题 ###
+> 模型训练数据来源于从数据库缓存到本地的所有评论  
+> 
+> 1. **使用主页面(main)侧边栏的“全部缓存”按钮** *(可选)*  
+> 2. **使用设置(settings)界面的“合成数据”按钮** *(必须)*  
+> 
+> 回到模型界面即可看到cache.csv文件存在后的界面

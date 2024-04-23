@@ -125,7 +125,7 @@ def fcomms_df(_r: redis.Redis, fcommkeys: list):
     return fcomms_dataframe
 
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=600, show_spinner="下载键值中...")
 def keys_cache(db: int):
     with init_connection(db=db) as r:
         allkeys: list[str] = r.keys()

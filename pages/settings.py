@@ -79,7 +79,8 @@ def create_data(_filespath: list):
 if st.button("合成数据", use_container_width=True):
     walkers = os.listdir(cachepath)
     filespath = [f"{cachepath}/{walker}" for walker in walkers if not os.path.isfile(f"{cachepath}/{walker}")]
-    data = create_data(filespath)
+    vaildpath = [_ for _ in filespath if "短评" in _]
+    data = create_data(vaildpath)
     st.success(f"**已保存至:** :blue[{datapath}/cache.csv] **长度:** :orange[{len(data)}]")
     show_data = data.reset_index(drop=True).rename_axis("序列")
     show_data.index = show_data.index + 1

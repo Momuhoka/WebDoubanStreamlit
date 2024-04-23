@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from data.modules import diy_menu, pages_dict, datapath, cachepath, read_txt, keys_cache
+from data.modules import diy_menu, pages_dict, datapath, cachepath
 
 # 页面菜单
 diy_menu(_page="工具", _page_dict=pages_dict)

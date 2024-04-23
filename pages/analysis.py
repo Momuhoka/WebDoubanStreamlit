@@ -4,8 +4,7 @@ import streamlit as st
 import pandas as pd
 
 from data.modules import (initialize, cachepath, read_txt, read_excel,
-                          keys_cache, all_cache, checkcache,
-                          film_cache, pie_chart_module, point_chart_module,
+                          pie_chart_module, point_chart_module,
                           datapath, word_filter, word_clouds,
                           diy_menu, pages_dict, get_keysCache)
 # 初始化

@@ -6,7 +6,7 @@ import pandas as pd
 from data.modules import (initialize, cachepath, read_txt, read_excel,
                           pie_chart_module, point_chart_module,
                           datapath, word_filter, word_clouds,
-                          diy_menu, pages_dict, get_keysCache)
+                          diy_menu, pages_dict, get_keysCache, film_cache)
 # 初始化
 initialize()
 
@@ -57,10 +57,9 @@ film = st.selectbox(
 #             .rename_axis(index=film) \
 #             .rename(columns={0: "是否缓存", 1: "缓存时间"})
 #         st.dataframe(status, use_container_width=True)
-#
-# # 得到电影后就可以开始缓存-放在all_cache之后
-# if not mode:
-#     film_cache(_db=DB, film=film, keysCache=keysCache, mode=False)
+
+# 得到电影后就可以开始缓存-放在all_cache之后
+film_cache(_db=DB, film=film, keysCache=keysCache, mode=False)
 
 choice = st.selectbox(
     "选择", ["详情", "用户", "短评", "长评"]

@@ -249,7 +249,7 @@ def all_cache(_db: int, _mode: bool):
 def point_chart_module(data: pd.DataFrame):
     fig = px.scatter(
         data,
-        x="豆瓣网龄",
+        x="加入年份",
         y="IP",
         size="看过电影",
         color="看过电影",  # 区分颜色

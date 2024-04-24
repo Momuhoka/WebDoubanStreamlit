@@ -127,7 +127,7 @@ with tab_3:
             plt.rcParams['font.size'] = 13
             country_counts = infos_dicts['area'].value_counts().reset_index()
             country_counts.columns = ['Country', 'Number of Movies']
-            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
+            plt.rcParams['font.sans-serif'] = ['SimHei']
             # 提取数据
             countries = country_counts['Country']
             movie_counts = country_counts['Number of Movies']

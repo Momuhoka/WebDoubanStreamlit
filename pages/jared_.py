@@ -38,7 +38,7 @@ initialize()
 # 使用的数据库
 DB = 3
 # 临时注册字体设置plt画图字体属性
-font_manager.fontManager.addfont(f"{datapath}/HanYiChaoCuHeiJian-1.ttf")
+font_manager.fontManager.addfont(f"{os.getcwd()}/{datapath}/HanYiChaoCuHeiJian-1.ttf")
 
 st.title('豆瓣TOP250电影')
 st.info('电影整体概况')

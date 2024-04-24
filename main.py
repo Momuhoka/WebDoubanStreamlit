@@ -78,7 +78,7 @@ with st.sidebar:
 
 # 发起GET请求获取图片内容
 @st.cache_data(show_spinner="正在获取封面...", ttl=300)
-def get_cover(url: str, _film: str, mode: bool):
+def  get_cover(url: str, _film: str, mode: bool):
     if not os.path.exists(f"{cachepath}/{_film}"):
         # 判断目录是否存在，不存在则创建
         os.mkdir(f"{cachepath}/{_film}")
@@ -178,6 +178,7 @@ usersDf.dropna(axis=0, how="any", subset=["ip"], inplace=True)
 
 with col_1:
     with st.container(border=True):
+        st.write(cover_paths[film_index], os.path.isfile(cover_paths[film_index]))
         st.image(cover_paths[film_index], use_column_width=True)
 with col_2:
     try:

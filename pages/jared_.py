@@ -37,7 +37,7 @@ initialize()
 
 # 使用的数据库
 DB = 3
-# 临时注册字体设置plt画图字体属性
+# 设置plt画图字体属性
 plt_font = font_manager.FontProperties(fname=f"{os.getcwd()}/data/fonts/HanYiChaoCuHeiJian-1.ttf")
 
 st.title('豆瓣TOP250电影')
@@ -122,10 +122,9 @@ with tab_3:
     with col_5:
         with st.expander(f"电影地域分布", expanded=True):
             st.subheader('电影地域分布图')
-            plt.rcParams['font.size'] = 13
+            plt.rcParams['font.size'] = 12
             country_counts = infos_dicts['area'].value_counts().reset_index()
             country_counts.columns = ['Country', 'Number of Movies']
-            plt.rcParams['font.sans-serif'] = ['SimHei']
             # 提取数据
             countries = country_counts['Country']
             movie_counts = country_counts['Number of Movies']
@@ -147,6 +146,7 @@ with tab_3:
                 ax.text(xval, yval, round(xval, 2), va='center', ha='left', fontdict={"fontproperties": plt_font})
             # 反转纵坐标轴
             ax.invert_yaxis()
+            ax.set_yticklabels(countries, fontdict={"fontproperties": plt_font})
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
             # 调整布局

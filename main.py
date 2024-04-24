@@ -71,7 +71,7 @@ def get_cover(url: str, _film: str):
         response = requests.get(url)
         with open(f"{cachepath}/{_film}/images/cover.jpg", 'wb') as f:
             f.write(response.content)
-    Image_path = f"{os.getcwd()}\\cache\\{_film}\\images\\cover.jpg"
+    Image_path = f"{os.getcwd()}/cache/{_film}/images/cover.jpg"
     return Image_path
 
 

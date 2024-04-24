@@ -555,7 +555,8 @@ if use_module:
         # 读取模型
         if hadmodel_check:
             s = time.time()
-            predict_model = tf.keras.models.load_model(f"{datapath}/keras/saves/{chosen_model}/{chosen_model}.keras")
+            if chosen_model:
+                predict_model = tf.keras.models.load_model(f"{datapath}/keras/saves/{chosen_model}/{chosen_model}.keras")
             e = time.time()
             st.success(f"**:orange[{chosen_model}]模型**读取成功: {(e - s):.2f}s", icon='✅')
         else:

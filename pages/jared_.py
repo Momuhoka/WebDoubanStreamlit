@@ -134,7 +134,6 @@ with tab_3:
             colors = plt.cm.viridis(np.linspace(0, 1, len(countries)))
             # 绘制横向柱状图
             bars = ax.barh(countries, movie_counts, color=colors)
-            st.write(countries)
             # 添加标题和标签
             ax.set_title('不同国家的电影数量', fontdict={"fontproperties": plt_font})
             ax.set_xlabel('电影数量', fontdict={"fontproperties": plt_font})

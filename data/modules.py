@@ -233,7 +233,7 @@ def film_cache(_db: int, film: str, keysCache: dict, mode: bool):
 # 缓存大部分表格
 def all_cache(_db: int, _mode: bool):
     # 获取所有键值
-    _keysCache = keys_cache(db=_db)
+    _keysCache = get_keysCache(_db=_db)
     with st.sidebar:
         holder = st.empty()
         length = len(_keysCache["详情"])
@@ -263,7 +263,7 @@ def point_chart_module(data: pd.DataFrame):
 
 
 @st.cache_data(show_spinner="饼图生成中...")
-def pie_chart_module(data: pd.DataFrame,titles:str):
+def pie_chart_module(data: pd.DataFrame, titles: str):
     # 使用altair创建饼图
     column_name = data.columns[0]
     fig = px.pie(
@@ -278,6 +278,7 @@ def pie_chart_module(data: pd.DataFrame,titles:str):
         textinfo='label+percent'  # 标签名+百分比
     )
     return fig
+
 
 @st.cache_data(show_spinner="字符过滤中...")
 def word_filter(comstring: str, name: str, stopwords: list):
@@ -343,6 +344,7 @@ def diy_menu(_page: str, _page_dict: dict) -> None:
     if page != _page:
         st.switch_page(_page_dict[page])
 
+
 def get_keysCache(_db: int):
     # 只读取键值缓存
     if os.path.isfile(f"{cachepath}/键值.txt"):
@@ -357,4 +359,3 @@ def get_keysCache(_db: int):
         # 列表的字典 {x: [a,b,c...], y: [d,e,f...]...}
         keysCache = keys_cache(db=_db)
     return keysCache
-

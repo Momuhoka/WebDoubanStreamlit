@@ -40,6 +40,7 @@ selected_films = st.multiselect(label="搜索电影", options=films, default=Non
 if not selected_films:
     selected_films = films
 
+
 # 获取封面相关信息
 def get_covers(_db: int):
     try:
@@ -246,7 +247,7 @@ with col_2:
                 "ID": idList,
                 "IP": ipList,
                 "加入年份": yearList,
-                "豆瓣网龄": [2024-int(x[0:4]) for x in yearList],
+                "豆瓣网龄": [2024 - int(x[0:4]) for x in yearList],
                 "看过电影": hadseenList
             })
             with st.expander(f"<{film}>-散点图", expanded=True):

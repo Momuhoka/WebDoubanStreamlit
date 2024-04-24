@@ -78,7 +78,7 @@ with st.sidebar:
 
 # 发起GET请求获取图片内容
 @st.cache_data(show_spinner="正在获取封面...", ttl=300)
-def get_cover(url: str, _film: str, mode: bool):
+def  get_cover(url: str, _film: str, mode: bool):
     if not os.path.exists(f"{cachepath}/{_film}"):
         # 判断目录是否存在，不存在则创建
         os.mkdir(f"{cachepath}/{_film}")

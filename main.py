@@ -20,6 +20,9 @@ initialize()
 # 默认数据库
 DB = 3
 
+# 默认模式
+MODE = False
+
 # 设置全局属性
 st.set_page_config(
     page_title='豆瓣宇宙',
@@ -59,16 +62,30 @@ image_urls = all_data["cover"]
 avatar_urls = all_data["avatars"]
 avatar_names = all_data["names"]
 
+# 侧边栏+所有缓存任务
+with st.sidebar:
+    st.title("电影信息速览")
+    # 模式
+    with st.container(border=True):
+        st.markdown("#### 缓存操作: ####")
+        MODE = st.toggle("强制覆盖", help="强制覆盖耗时更久", value=False)
+        if st.button("全部缓存",
+                     type="primary",
+                     use_container_width=True):
+            # 全部缓存
+            all_cache(_db=DB, _mode=MODE)
+
 
 # 发起GET请求获取图片内容
 @st.cache_data(show_spinner="正在获取封面...", ttl=300)
-def get_cover(url: str, _film: str):
+def get_cover(url: str, _film: str, mode: bool):
     if not os.path.exists(f"{cachepath}/{_film}"):
         # 判断目录是否存在，不存在则创建
         os.mkdir(f"{cachepath}/{_film}")
     if not os.path.exists(f"{cachepath}/{_film}/images"):
         os.mkdir(f"{cachepath}/{_film}/images")
-    if not os.path.exists(f"{cachepath}/{_film}/images/cover.jpg"):
+    # mode=True 强制覆盖刷新封面缓存
+    if not os.path.exists(f"{cachepath}/{_film}/images/cover.jpg") or mode:
         response = requests.get(url)
         with open(f"{cachepath}/{_film}/images/cover.jpg", 'wb') as f:
             f.write(response.content)
@@ -99,7 +116,7 @@ cover_paths = []
 for film in stqdm(selected_films, desc="进度"):
     url = image_urls[selected_films.index(film)]
     try:
-        cover_paths.append(get_cover(url=url, _film=film))
+        cover_paths.append(get_cover(url=url, _film=film, mode=False))
     except Exception as e:
         st.write(f"{e}\n{film}")
         break
@@ -114,17 +131,8 @@ film_index = image_select(
 )
 film = selected_films[film_index]
 
-# 侧边栏+所有缓存任务
+# 缓存信息
 with st.sidebar:
-    st.title("电影信息速览")
-    # 模式
-    with st.form("缓存操作:"):
-        mode = st.toggle("强制覆盖", help="强制覆盖耗时更久", value=False)
-        if st.form_submit_button("全部缓存",
-                                 type="primary",
-                                 use_container_width=True):
-            # 全部缓存
-            all_cache(_db=DB, _mode=mode)
     # 手动展开
     check = st.checkbox("查看缓存状态", value=False)
     cache_status = checkcache(film=film)
@@ -137,8 +145,10 @@ with st.sidebar:
         st.dataframe(status, use_container_width=True)
 
 # 得到电影后就可以开始缓存-放在all_cache之后
-if not mode:
-    film_cache(_db=DB, film=film, keysCache=keysCache, mode=False)
+film_cache(_db=DB, film=film, keysCache=keysCache, mode=MODE)
+# mode=True 时以防万一覆盖图片
+get_cover(url=image_urls[selected_films.index(film)], _film=film, mode=MODE)
+
 # 图表的基础数据源
 usersDf = read_excel(f"{cachepath}/{film}/用户.xlsx")
 scommsDf = read_excel(f"{cachepath}/{film}/短评.xlsx")

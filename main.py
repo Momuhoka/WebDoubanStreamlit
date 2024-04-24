@@ -7,7 +7,7 @@ import redis
 # import requests
 import streamlit as st
 import streamlit_shadcn_ui as ui
-from stqdm import stqdm
+# from stqdm import stqdm
 from streamlit_image_select import image_select
 from streamlit_star_rating import st_star_rating
 
@@ -46,6 +46,7 @@ if not selected_films:
 
 
 # 获取封面相关信息
+@st.cache_data(show_spinner="获取电影封面...")
 def get_cover_infos(_db: int):
     try:
         with init_connection(db=_db) as _r:

@@ -6,19 +6,17 @@ import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from data.modules import (initialize, cachepath, read_txt, read_excel,
-                          keys_cache, all_cache, checkcache,
-                          film_cache, pie_chart_module, point_chart_module,
-                          datapath, word_filter, word_clouds,
+from data.modules import (cachepath, read_txt, keys_cache, initialize,
                           diy_menu, pages_dict, init_connection, get_values)
-import pydeck as pdk
+
+
 def get_Color(movie_count):
     if movie_count >= 100:
         return [179, 205, 224, 255]  # 浅蓝色
     elif movie_count >= 40:
         return [140, 150, 198, 255]  # 浅紫色
     elif movie_count >= 30:
-        return [136, 86, 167, 255]   # 深紫色
+        return [136, 86, 167, 255]  # 深紫色
     elif movie_count >= 20:
         return [200, 100, 100, 255]  # 红色
     elif movie_count >= 10:
@@ -28,10 +26,12 @@ def get_Color(movie_count):
     elif movie_count >= 3:
         return [153, 255, 153, 255]  # 绿色
     else:
-        return [51, 204, 255, 255]   # 蓝色
+        return [51, 204, 255, 255]  # 蓝色
+
+
 diy_menu(_page="电影整体分析", _page_dict=pages_dict)
 # 初始化
-#initialize()
+initialize()
 
 # 使用的数据库
 DB = 3
@@ -66,9 +66,9 @@ with init_connection(db=DB) as r:
     infos_dicts = get_values(_r=r, keys=infos)
 # show
 st.dataframe(infos_dicts)
-tab_1, tab_2 ,tab_3,tab_4 = st.tabs(["电影评论", "电影分类","影评推荐指数","筛选电影"])
+tab_1, tab_2, tab_3, tab_4 = st.tabs(["电影评论", "电影分类", "影评推荐指数", "筛选电影"])
 with tab_1:
-    col_1, col_2 = st.columns(spec=2,gap='large')
+    col_1, col_2 = st.columns(spec=2, gap='large')
     with col_1:
         with st.expander(f"评分分布图", expanded=True):
             score_counts = infos_dicts['score'].value_counts()
@@ -77,9 +77,10 @@ with tab_1:
             score_counts_df = pd.DataFrame({'分数': score_counts.index, '电影数': score_counts.values})
 
             # 使用Plotly创建柱状图
-            fig = px.bar(score_counts_df, x='分数', y='电影数', title='电影评分分布图',text='电影数',color='电影数',color_continuous_scale='YlGnBu')
+            fig = px.bar(score_counts_df, x='分数', y='电影数', title='电影评分分布图', text='电影数', color='电影数',
+                         color_continuous_scale='YlGnBu')
             fig.update_layout(title_font_size=25)
-            st.plotly_chart(fig,use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True)
     with col_2:
         with st.expander(f"电影搜索", expanded=True):
             st.subheader('不同评分的电影介绍')
@@ -98,23 +99,22 @@ with tab_2:
     col_3, col_4 = st.columns(spec=2, gap='large')
     categories = ['剧情', '喜剧', '动作', '爱情', '科幻', '动画', '悬疑', '惊悚', '恐怖', '纪录片']
     with col_3:
-
         # 统计每个种类的个数
         category_counts = {category: infos_dicts['filmtype'].str.contains(category).sum() for category in categories}
 
         # 创建饼图的标签和值
         labels = list(category_counts.keys())
         values = list(category_counts.values())
-        pull_value=[0.15,0.16,0.1,0.18,0.06,0.14,0.08,0.12,0.04,0.02]
+        pull_value = [0.15, 0.16, 0.1, 0.18, 0.06, 0.14, 0.08, 0.12, 0.04, 0.02]
 
         # 创建饼图
         with st.expander(f"不同类型电影分布-饼图", expanded=True):
-            fig = go.Figure(data=[go.Pie(labels=labels, values=values,pull=pull_value)])
-            fig.update_layout(title="不同类型电影占比",title_font_size=25)
+            fig = go.Figure(data=[go.Pie(labels=labels, values=values, pull=pull_value)])
+            fig.update_layout(title="不同类型电影占比", title_font_size=25)
             st.plotly_chart(fig, use_container_width=True)
     with col_4:
-        with st.expander(f"不同类型电影推荐",expanded=True):
-            type_choice = st.selectbox("选择一个电影类型来查找推荐电影:",categories)
+        with st.expander(f"不同类型电影推荐", expanded=True):
+            type_choice = st.selectbox("选择一个电影类型来查找推荐电影:", categories)
             filtered_df = infos_dicts[infos_dicts['filmtype'].str.contains(type_choice)]
             sorted_df = filtered_df.sort_values(by='score', ascending=False).head(10).reset_index(drop=True)
             st.subheader(f"高分{type_choice}电影推荐如下：")
@@ -170,12 +170,12 @@ with tab_4:
             selected_director = st.selectbox('', directors)
 
             # 根据所选导演过滤数据
-            filtered_df_2= infos_dicts.query("director == @selected_director")
+            filtered_df_2 = infos_dicts.query("director == @selected_director")
 
             # 显示 DataFrame
             st.write(filtered_df_2)
     with col_8:
-        with st.expander(f"电影演员查询",expanded=True):
+        with st.expander(f"电影演员查询", expanded=True):
             st.subheader('选择演员')
             all_actors = set()
             for actors in infos_dicts['actor'].str.split(' / '):
@@ -195,16 +195,3 @@ with tab_4:
 
             # 显示 DataFrame
             st.write(filtered_df)
-
-
-
-
-
-
-
-
-
-
-
-
-

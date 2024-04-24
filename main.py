@@ -3,8 +3,9 @@ import os
 import random
 
 import pandas as pd
+import redis
+# import requests
 import streamlit as st
-import requests
 import streamlit_shadcn_ui as ui
 from stqdm import stqdm
 from streamlit_image_select import image_select
@@ -45,7 +46,7 @@ if not selected_films:
 
 
 # 获取封面相关信息
-def get_covers(_db: int):
+def get_cover_infos(_db: int):
     try:
         with init_connection(db=_db) as _r:
             result = get_values(_r=_r, keys=[f"电影 : {_} : 封面" for _ in selected_films])
@@ -54,8 +55,8 @@ def get_covers(_db: int):
     return result
 
 
-all_data = get_covers(_db=DB)
-image_urls = all_data["cover"]
+all_data = get_cover_infos(_db=DB)
+# image_urls = all_data["cover"]
 # image_urls = ["https://img3.doubanio.com/view/photo/s_ratio_poster/public/p480747492.webp",
 #               "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2561716440.webp",
 #               "https://img3.doubanio.com/view/photo/s_ratio_poster/public/p2372307693.webp"]
@@ -76,9 +77,8 @@ with st.sidebar:
             all_cache(_db=DB, _mode=MODE)
 
 
-# 发起GET请求获取图片内容
-@st.cache_data(show_spinner="正在获取封面...", ttl=300)
-def  get_cover(url: str, _film: str, mode: bool):
+# 连接数据库获取图片内容
+def get_cover(_film: str, mode: bool):
     if not os.path.exists(f"{cachepath}/{_film}"):
         # 判断目录是否存在，不存在则创建
         os.mkdir(f"{cachepath}/{_film}")
@@ -86,43 +86,39 @@ def  get_cover(url: str, _film: str, mode: bool):
         os.mkdir(f"{cachepath}/{_film}/images")
     # mode=True 强制覆盖刷新封面缓存
     if not os.path.exists(f"{cachepath}/{_film}/images/cover.jpg") or mode:
-        response = requests.get(url, headers={
-                                "Origin": "https://movie.douban.com",
-                                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0"
-                            })
+        # 图片二进制不需要解码film
+        with redis.Redis(connection_pool=redis.ConnectionPool(
+                host='175.178.4.58', port=6379, password="momuhoka", db=DB)) as r:
+            image = r.get(f"电影 : {_film} : 图片")
         with open(f"{cachepath}/{_film}/images/cover.jpg", 'wb') as f:
-            f.write(response.content)
-    Image_path = f"{os.getcwd()}/cache/{_film}/images/cover.jpg"
-    return Image_path
+            f.write(image)
 
 
-# @st.cache_data(show_spinner="正在获取头像...")
-# def get_avatars(urls: list[str], _film: str):
-#     Image_paths = []
+# # 发起GET请求获取图片内容
+# def get_cover_from_urls(url: str, _film: str):
 #     if not os.path.exists(f"{cachepath}/{_film}"):
 #         # 判断目录是否存在，不存在则创建
 #         os.mkdir(f"{cachepath}/{_film}")
 #     if not os.path.exists(f"{cachepath}/{_film}/images"):
 #         os.mkdir(f"{cachepath}/{_film}/images")
-#     for url in urls:
+#     if not os.path.exists(f"{cachepath}/{_film}/images/cover.jpg"):
 #         response = requests.get(url)
-#         if not os.path.exists(f"{cachepath}/{_film}/images/{urls.index(url)}.jpg"):
-#             with open(f"{cachepath}/{_film}/images/{urls.index(url)}.jpg", 'wb') as f:
-#                 f.write(response.content)
-#         Image_paths.append(f"{os.getcwd()}\\cache\\{_film}\\images\\{urls.index(url)}.jpg")
-#     return Image_paths
+#         with open(f"{cachepath}/{_film}/images/cover.jpg", 'wb') as f:
+#             f.write(response.content)
+
 
 col_1, col_2 = st.columns(spec=[0.25, 0.75])
 
 cover_paths = []
-# 获取所有图片
-for film in stqdm(selected_films, desc="进度"):
-    url = image_urls[selected_films.index(film)]
+# 获取所有图片地址
+for selected_film in stqdm(selected_films, desc="封面获取进度"):
     try:
-        cover_paths.append(get_cover(url=url, _film=film, mode=False))
+        get_cover(_film=selected_film, mode=False)
+        cover_paths.append(f"{os.getcwd()}/cache/{selected_film}/images/cover.jpg")
     except Exception as e:
-        st.write(f"{e}\n{film}")
-        break
+        st.write(f"film:{selected_film}\n{e}")
+
+st.write(len(cover_paths))
 
 # 选择电影
 film_index = image_select(
@@ -150,7 +146,7 @@ with st.sidebar:
 # 得到电影后就可以开始缓存-放在all_cache之后
 film_cache(_db=DB, film=film, keysCache=keysCache, mode=MODE)
 # mode=True 时以防万一覆盖图片
-get_cover(url=image_urls[selected_films.index(film)], _film=film, mode=MODE)
+get_cover(_film=film, mode=MODE)
 
 # 图表的基础数据源
 usersDf = read_excel(f"{cachepath}/{film}/用户.xlsx")
@@ -181,7 +177,6 @@ usersDf.dropna(axis=0, how="any", subset=["ip"], inplace=True)
 
 with col_1:
     with st.container(border=True):
-        st.write(cover_paths[film_index], os.path.isfile(cover_paths[film_index]))
         st.image(cover_paths[film_index], use_column_width=True)
 with col_2:
     try:

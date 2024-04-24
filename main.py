@@ -86,7 +86,10 @@ def get_cover(url: str, _film: str, mode: bool):
         os.mkdir(f"{cachepath}/{_film}/images")
     # mode=True 强制覆盖刷新封面缓存
     if not os.path.exists(f"{cachepath}/{_film}/images/cover.jpg") or mode:
-        response = requests.get(url)
+        response = requests.get(url, headers={
+                                "Origin": "https://movie.douban.com",
+                                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0"
+                            })
         with open(f"{cachepath}/{_film}/images/cover.jpg", 'wb') as f:
             f.write(response.content)
     Image_path = f"{os.getcwd()}/cache/{_film}/images/cover.jpg"
@@ -178,6 +181,7 @@ usersDf.dropna(axis=0, how="any", subset=["ip"], inplace=True)
 
 with col_1:
     with st.container(border=True):
+        st.write(cover_paths[film_index], os.path.isfile(cover_paths[film_index]))
         st.image(cover_paths[film_index], use_column_width=True)
 with col_2:
     try:

@@ -38,7 +38,7 @@ initialize()
 # 使用的数据库
 DB = 3
 # 临时注册字体设置plt画图字体属性
-font_manager.fontManager.addfont(f"{os.getcwd()}/data/fonts/HanYiChaoCuHeiJian-1.ttf")
+plt_font = font_manager.FontProperties(fname=f"{os.getcwd()}/data/fonts/HanYiChaoCuHeiJian-1.ttf")
 
 st.title('豆瓣TOP250电影')
 st.info('电影整体概况')
@@ -125,7 +125,7 @@ with tab_3:
             plt.rcParams['font.size'] = 13
             country_counts = infos_dicts['area'].value_counts().reset_index()
             country_counts.columns = ['Country', 'Number of Movies']
-            plt.rcParams['font.sans-serif'] = ['LXGW WenKai']
+            plt.rcParams['font.sans-serif'] = ['SimHei']
             # 提取数据
             countries = country_counts['Country']
             movie_counts = country_counts['Number of Movies']
@@ -135,13 +135,16 @@ with tab_3:
             colors = plt.cm.viridis(np.linspace(0, 1, len(countries)))
             # 绘制横向柱状图
             bars = ax.barh(countries, movie_counts, color=colors)
+            st.write(countries)
             # 添加标题和标签
-            ax.set_title('不同国家的电影数量')
-            ax.set_xlabel('电影数量')
-            ax.set_ylabel('国家')
+            ax.set_title('不同国家的电影数量', fontdict={"fontproperties": plt_font})
+            ax.set_xlabel('电影数量', fontdict={"fontproperties": plt_font})
+            ax.set_ylabel('国家', fontdict={"fontproperties": plt_font})
             # 显示纵坐标的值
-            for i in range(len(countries)):
-                ax.text(movie_counts[i], i, str(movie_counts[i]), ha='left', va='center')
+            for bar in bars:
+                xval = bar.get_width()
+                yval = bar.get_y() + bar.get_height() / 2
+                ax.text(xval, yval, round(xval, 2), va='center', ha='left', fontdict={"fontproperties": plt_font})
             # 反转纵坐标轴
             ax.invert_yaxis()
             ax.spines['top'].set_visible(False)

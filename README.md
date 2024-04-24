@@ -37,3 +37,6 @@ $ streamlit run ./main.py
 > 2. **使用设置(settings)界面的“合成数据”按钮** *(必须)*  
 > 
 > 回到模型界面即可看到cache.csv文件存在后的界面
+
+### 训练模型使用效果预览 ###
+[image](https://github.com/Momuhoka/WebDoubanStreamlit/tree/main/data/tset_result.gif)

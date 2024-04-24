@@ -155,7 +155,7 @@ LOCATIONS = ["河北", "山西", "辽宁", "吉林", "黑龙江", "江苏",
              "广西", "西藏", "宁夏", "新疆", "北京", "天津",
              "上海", "重庆", "香港", "澳门"]
 # IP异常用location填充
-usersDf["ip"].fillna(usersDf["location"], inplace=True)
+usersDf.fillna({"ip": usersDf["location"]}, inplace=True)
 # ip置换
 for ip in usersDf["ip"].astype(str):
     for pos in LOCATIONS:

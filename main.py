@@ -78,19 +78,25 @@ with st.sidebar:
 
 
 # 连接数据库获取图片内容
-def get_cover(_film: str, mode: bool):
-    if not os.path.exists(f"{cachepath}/{_film}"):
-        # 判断目录是否存在，不存在则创建
-        os.mkdir(f"{cachepath}/{_film}")
-    if not os.path.exists(f"{cachepath}/{_film}/images"):
-        os.mkdir(f"{cachepath}/{_film}/images")
-    # mode=True 强制覆盖刷新封面缓存
-    if not os.path.exists(f"{cachepath}/{_film}/images/cover.jpg") or mode:
-        # 图片二进制不需要解码film
-        with redis.Redis(connection_pool=redis.ConnectionPool(
-                host='175.178.4.58', port=6379, password="momuhoka", db=DB)) as r:
-            image = r.get(f"电影 : {_film} : 图片")
-        with open(f"{cachepath}/{_film}/images/cover.jpg", 'wb') as f:
+def get_covers(_films: list[str], mode: bool):
+    # 图片二进制不需要解码film
+    with redis.Redis(connection_pool=redis.ConnectionPool(
+            host='175.178.4.58', port=6379, password="momuhoka", db=DB)) as r:
+        pipe = r.pipeline()
+    image_films = []
+    for _film in _films:
+        if not os.path.exists(f"{cachepath}/{_film}"):
+            # 判断目录是否存在，不存在则创建
+            os.mkdir(f"{cachepath}/{_film}")
+        if not os.path.exists(f"{cachepath}/{_film}/images"):
+            os.mkdir(f"{cachepath}/{_film}/images")
+        # mode=True 强制覆盖刷新封面缓存
+        if not os.path.exists(f"{cachepath}/{_film}/images/cover.jpg") or mode:
+            pipe.get(f"电影 : {_film} : 图片")
+            image_films.append(_film)
+    images = pipe.execute()
+    for image, image_film in zip(images, image_films):
+        with open(f"{cachepath}/{image_film}/images/cover.jpg", 'wb') as f:
             f.write(image)
 
 
@@ -109,16 +115,12 @@ def get_cover(_film: str, mode: bool):
 
 col_1, col_2 = st.columns(spec=[0.25, 0.75])
 
-cover_paths = []
-# 获取所有图片地址
-for selected_film in stqdm(selected_films, desc="封面获取进度"):
-    try:
-        get_cover(_film=selected_film, mode=False)
-        cover_paths.append(f"{os.getcwd()}/cache/{selected_film}/images/cover.jpg")
-    except Exception as e:
-        st.write(f"film:{selected_film}\n{e}")
-
-st.write(len(cover_paths))
+# 获取所有图片
+try:
+    get_covers(_films=selected_films, mode=False)
+except Exception as e:
+    st.write(e)
+cover_paths = [f"{os.getcwd()}/cache/{_}/images/cover.jpg" for _ in selected_films]
 
 # 选择电影
 film_index = image_select(
@@ -145,8 +147,9 @@ with st.sidebar:
 
 # 得到电影后就可以开始缓存-放在all_cache之后
 film_cache(_db=DB, film=film, keysCache=keysCache, mode=MODE)
-# mode=True 时以防万一覆盖图片
-get_cover(_film=film, mode=MODE)
+if MODE:
+    # mode=True 时以防万一覆盖图片
+    get_covers(_films=[film], mode=True)
 
 # 图表的基础数据源
 usersDf = read_excel(f"{cachepath}/{film}/用户.xlsx")

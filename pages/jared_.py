@@ -6,8 +6,10 @@ import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
 import plotly.express as px
+from matplotlib import font_manager
+
 from data.modules import (cachepath, read_txt, keys_cache, initialize,
-                          diy_menu, pages_dict, init_connection, get_values)
+                          diy_menu, pages_dict, init_connection, get_values, datapath)
 
 
 def get_Color(movie_count):
@@ -35,12 +37,8 @@ initialize()
 
 # 使用的数据库
 DB = 3
-# 设置全局属性
-
-# experimental_allow_widgets=True
-# 允许在缓存函数中使用小部件。默认值为False
-# 对缓存函数中的小部件的支持目前处于实验阶段
-# 将此参数设置为 True 可能会导致内存使用过多，因为 widget 值被视为缓存的附加输入参数
+# 临时注册字体设置plt画图字体属性
+font_manager.fontManager.addfont(f"{datapath}/HanYiChaoCuHeiJian-1.ttf")
 
 st.title('豆瓣TOP250电影')
 st.info('电影整体概况')
@@ -127,7 +125,7 @@ with tab_3:
             plt.rcParams['font.size'] = 13
             country_counts = infos_dicts['area'].value_counts().reset_index()
             country_counts.columns = ['Country', 'Number of Movies']
-            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
+            plt.rcParams['font.sans-serif'] = ['LXGW WenKai']
             # 提取数据
             countries = country_counts['Country']
             movie_counts = country_counts['Number of Movies']

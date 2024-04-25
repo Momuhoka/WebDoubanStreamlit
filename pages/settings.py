@@ -8,18 +8,18 @@ import streamlit as st
 
 from data.modules import diy_menu, pages_dict, datapath, cachepath
 
-# 页面菜单
-diy_menu(_page="工具", _page_dict=pages_dict)
-
-# 默认数据库
-DB = 3
-
 # 设置全局属性
 st.set_page_config(
     page_title='设置',
     page_icon='⚙️',
     layout='wide'
 )
+
+# 页面菜单
+diy_menu(_page="工具", _page_dict=pages_dict)
+
+# 默认数据库
+DB = 3
 
 # @st.cache_data(ttl=300,  # Cache data for 5 min (=300 seconds)
 #                show_spinner="检查数据文件状态...")

@@ -1,4 +1,3 @@
-import collections
 import os.path
 import streamlit as st
 import matplotlib.pyplot as plt
@@ -9,7 +8,7 @@ import plotly.express as px
 from matplotlib import font_manager
 
 from data.modules import (cachepath, read_txt, keys_cache, initialize,
-                          diy_menu, pages_dict, init_connection, get_values, datapath)
+                          diy_menu, pages_dict, init_connection, get_values)
 
 # 设置全局属性
 st.set_page_config(

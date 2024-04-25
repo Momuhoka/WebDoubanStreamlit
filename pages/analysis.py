@@ -15,8 +15,8 @@ DB = 3
 
 # 设置全局属性
 st.set_page_config(
-    page_title='球云图',
-    page_icon='🔮',
+    page_title='信息一览',
+    page_icon='📁',
     layout='wide'
 )
 
@@ -42,6 +42,8 @@ films = [filmkey.split(" : ")[1] for filmkey in keysCache["详情"]]
 film = st.selectbox(
     "电影列表", films, help="输入以搜索"
 )
+
+
 
 # 得到电影后就可以开始缓存-放在all_cache之后
 film_cache(_db=DB, film=film, keysCache=keysCache, mode=False)

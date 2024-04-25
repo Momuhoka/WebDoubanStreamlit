@@ -1,12 +1,6 @@
 import redis
-
-from data.modules import (initialize, diy_menu, pages_dict)
-
-diy_menu(_page="电影球云图", _page_dict=pages_dict)
-# 初始化
-initialize()
-
 import streamlit as st
+from data.modules import (initialize, diy_menu, pages_dict)
 from streamlit_agraph import agraph, Node, Edge, Config
 
 # 设置全局属性
@@ -15,6 +9,11 @@ st.set_page_config(
     page_icon='🔮',
     layout='wide'
 )
+
+# 初始化
+initialize()
+# 页面菜单
+diy_menu(_page="电影球云图", _page_dict=pages_dict)
 
 
 # 处理函数

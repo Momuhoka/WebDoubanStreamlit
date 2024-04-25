@@ -5,6 +5,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import thulac
+import random
 from stqdm import stqdm
 
 from data.modules import diy_menu, pages_dict, datapath
@@ -38,8 +39,8 @@ with tc2:
     with st.container():
         with t1:
             st.markdown("**页面设置**")
-            train_module = st.toggle("模型训练", value=True)
-            use_module = st.toggle("模型使用", value=False)
+            train_module = st.toggle("模型训练", value=False)
+            use_module = st.toggle("模型使用", value=True)
             show_module = st.toggle("数据展示", value=False)
         with t2:
             threadings = st.number_input("> **TensorFlow线程数**",
@@ -257,8 +258,8 @@ if train_module:
             st.form_submit_button("应用修改", use_container_width=True)
 
     # 展示数据
-    with st.expander("**已收集数据:** {}".format(":red[None]" if data is None else f":green[{len(data)}]")):
-        st.dataframe(show_all_data, use_container_width=True)
+    with st.expander("**已收集数据:** :green[100]/{}".format(":red[None]" if data is None else f":green[{len(data)}]")):
+        st.dataframe(random.sample(show_all_data, 100), use_container_width=True)
 
     # # 临时用0.1不然训练集太大
     # data = data[:10000].reset_index(drop=True)

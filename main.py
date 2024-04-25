@@ -218,11 +218,11 @@ with col_2:
         colist = st.columns(spec=12)
         avatar_url = avatar_urls[film_index].split(', ')
         avatar_name = avatar_names[film_index].split(', ')
-        avatar_name[0] = "导演"  # 演职员表第一个是导演
         for co in range(2 * len(avatar_url)):
             with colist[co]:
                 if co % 2 == 0:
-                    ui.avatar(src=avatar_url, key=co, fallback=avatar_name[co // 2][0])
+                    # 演职员表第一个是导演
+                    ui.avatar(src=avatar_url, key=co, fallback=avatar_name[co // 2][0] if co != 0 else "导演")
                 else:
                     st.markdown(avatar_name[co // 2])
         with st.container(border=True, height=150):

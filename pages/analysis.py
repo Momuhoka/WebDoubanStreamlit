@@ -13,6 +13,13 @@ initialize()
 # 使用的数据库
 DB = 3
 
+# 设置全局属性
+st.set_page_config(
+    page_title='球云图',
+    page_icon='🔮',
+    layout='wide'
+)
+
 # experimental_allow_widgets=True
 # 允许在缓存函数中使用小部件。默认值为False
 # 对缓存函数中的小部件的支持目前处于实验阶段
@@ -35,28 +42,6 @@ films = [filmkey.split(" : ")[1] for filmkey in keysCache["详情"]]
 film = st.selectbox(
     "电影列表", films, help="输入以搜索"
 )
-
-# # 侧边栏+所有缓存任务
-# with st.sidebar:
-#     st.title("电影信息速览")
-#     # 模式
-#     with st.form("缓存操作:"):
-#         mode = st.toggle("强制覆盖", help="强制覆盖耗时更久", value=False)
-#         if st.form_submit_button("全部缓存",
-#                                  type="primary",
-#                                  use_container_width=True):
-#             # 全部缓存
-#             all_cache(_db=DB, _mode=mode)
-#     # 手动展开
-#     check = st.checkbox("查看缓存状态", value=False)
-#     cache_status = checkcache(film=film)
-#     # 展示缓存
-#     if check:
-#         # 显示缓存状态
-#         status = pd.DataFrame(cache_status).T \
-#             .rename_axis(index=film) \
-#             .rename(columns={0: "是否缓存", 1: "缓存时间"})
-#         st.dataframe(status, use_container_width=True)
 
 # 得到电影后就可以开始缓存-放在all_cache之后
 film_cache(_db=DB, film=film, keysCache=keysCache, mode=False)

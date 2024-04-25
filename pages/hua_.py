@@ -9,6 +9,13 @@ initialize()
 import streamlit as st
 from streamlit_agraph import agraph, Node, Edge, Config
 
+# 设置全局属性
+st.set_page_config(
+    page_title='球云图',
+    page_icon='🔮',
+    layout='wide'
+)
+
 
 # 处理函数
 def handle_results(_results: list[str], _colors: list[str], _label):

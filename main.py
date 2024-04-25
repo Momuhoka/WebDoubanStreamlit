@@ -216,6 +216,7 @@ with col_2:
         colist = st.columns(spec=12)
         avatar_url = avatar_urls[film_index].split(', ')
         avatar_name = avatar_names[film_index].split(', ')
+        avatar_name[0] = "导演"  # 演职员表第一个是导演
         for co in range(2 * len(avatar_url)):
             with colist[co]:
                 if co % 2 == 0:

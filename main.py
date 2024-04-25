@@ -95,10 +95,12 @@ def get_covers(_films: list[str], mode: bool):
         if not os.path.exists(f"{cachepath}/{_film}/images/cover.jpg") or mode:
             pipe.get(f"电影 : {_film} : 图片")
             image_films.append(_film)
-    images = pipe.execute()
-    for image, image_film in zip(images, image_films):
-        with open(f"{cachepath}/{image_film}/images/cover.jpg", 'wb') as f:
-            f.write(image)
+    # 添加标志以免无效运行
+    if image_films:
+        images = pipe.execute()
+        for image, image_film in zip(images, image_films):
+            with open(f"{cachepath}/{image_film}/images/cover.jpg", 'wb') as f:
+                f.write(image)
 
 
 # # 发起GET请求获取图片内容

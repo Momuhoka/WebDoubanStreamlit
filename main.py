@@ -46,7 +46,6 @@ if not selected_films:
 
 
 # 获取封面相关信息
-@st.cache_data(show_spinner="获取电影封面...")
 def get_cover_infos(_db: int):
     try:
         with init_connection(db=_db) as _r:

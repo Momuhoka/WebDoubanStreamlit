@@ -258,7 +258,7 @@ if train_module:
 
     # 展示数据
     with st.expander("**已收集数据:** :green[1000]/{}".format(":red[None]" if data is None else f":green[{len(data)}]")):
-        if data:
+        if data is not None:
             st.dataframe(show_all_data.sample(n=1000, axis=0), use_container_width=True)
         else:
             st.markdown("ℹ️ **:red[评论数据集为空]** ")

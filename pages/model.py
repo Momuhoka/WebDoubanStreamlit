@@ -265,6 +265,9 @@ if train_module:
 
     # # 临时用0.1不然训练集太大
     # data = data[:10000].reset_index(drop=True)
+    st.info(
+        "**Web端由于性能原因禁用:red[模型训练]，整个过程都通过继承类结合Streamlit实现了:orange[可视化]，建议:green[本地化部署]进行训练**",
+        icon='⚠️')
 
     tokenized_data_check, tokenizer_check, sequences_check, padded_check = pre_data_check()
     pre_check = tokenized_data_check & tokenizer_check & sequences_check & padded_check
@@ -541,6 +544,9 @@ if train_module:
                           callbacks=[streamlit_callback, reduce_lr, early_stopping])
 
 if use_module:
+    st.info(
+        "**Top250训练集:red[偏向高分]，所以训练数据虽然不少但质量一般，因此分析结果:orange[仅供参考]，主要突出展现:green[可视化思想]**",
+        icon='⚠️')
     # 查询可用模型
     models_list = check_mdoel_had(f"{datapath}/keras/saves")
     hadmodel_check = True if models_list else False

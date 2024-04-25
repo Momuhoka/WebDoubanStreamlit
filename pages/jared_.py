@@ -129,7 +129,7 @@ with tab_3:
     with col_5:
         with st.expander(f"电影地域分布", expanded=True):
             st.subheader('电影地域分布图')
-            plt.rcParams['font.size'] = 12
+            plt.rcParams['font.size'] = 17
             country_counts = infos_dicts['area'].value_counts().reset_index()
             country_counts.columns = ['Country', 'Number of Movies']
             # 提取数据

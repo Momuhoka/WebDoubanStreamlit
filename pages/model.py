@@ -460,7 +460,7 @@ if train_module:
                                 lambda x: "{:.2f}%".format(x / len(padded) * 100))
                             st.dataframe(show_table, use_container_width=True)
             else:
-                st.info("没有**:green[数据]**或者没有启用**:orange[数据展示]** ", icon='⚠️')
+                st.info("没有 **:green[数据]** 或者没有启用 **:orange[数据展示]** ", icon='⚠️')
 
     with st.container(border=True):
         model_name = st.text_input("**模型名称:**",

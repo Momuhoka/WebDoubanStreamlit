@@ -7,7 +7,8 @@ from streamlit_agraph import agraph, Node, Edge, Config
 st.set_page_config(
     page_title='球云图',
     page_icon='🔮',
-    layout='wide'
+    layout='wide',
+    initial_sidebar_state='collapsed'
 )
 
 # 初始化

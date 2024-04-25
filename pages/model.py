@@ -395,69 +395,73 @@ if train_module:
                         else:
                             padded = None
                             padholder.info(f":red[**没有检测到转换补全表缓存(请点击补全表生成)**]", icon='🚨')
-        with co2:
-            if show_module:
-                t1, t2, t3, t4, t5 = st.tabs(
-                    ["数据处理预览", "词汇映射预览", "评论转换预览", "转换补全预览", "补全表信息"])
-                with t1:
-                    # 处理数据展示
-                    if tokenized_data is not None:
-                        show_data = tokenized_data.rename(
-                            columns={"sentiment": "情感", "tokenized_comment": "分词"}).rename_axis("序列ID")
-                        show_data.index = show_data.index + 1  # 从1开始
-                    else:
-                        show_data = None
-                    st.dataframe(show_data, use_container_width=True)
-                with t2:
-                    # 词汇表展示
-                    if tokenizer is not None:
-                        show_tokenizer = pd.Series(tokenizer.index_word)  # 字典映射变dataframe
-                        show_tokenizer = show_tokenizer.rename(index="映射词汇").rename_axis("索引")
-                    else:
-                        show_tokenizer = None
-                    st.dataframe(show_tokenizer, use_container_width=True)
-                with t3:
-                    # 转换表展示, 由于太大用字典拆分表示
-                    show_seq = sequences
-                    if show_seq is not None:
-                        length = len(sequences)
-                        seq_index = st.number_input(f"**序列ID:** :green[1~{length}] ",
-                                                    value=1,
-                                                    min_value=1,
-                                                    max_value=length)
-                        show_seq = pd.DataFrame(sequences[seq_index - 1])
-                        show_seq.index = show_seq.index + 1  # 从1开始
-                        show_seq = show_seq.rename(columns={0: "特征值"}).rename_axis("时间步")
-                    st.dataframe(show_seq, use_container_width=True)
-                with t4:
-                    # 补全表展示
-                    show_padded = None
-                    if padded is not None:
-                        show_padded = pd.DataFrame(padded).rename_axis("序列ID")
-                        show_padded.index = show_padded.index + 1
-                    st.dataframe(show_padded, use_container_width=True)
-                with t5:
-                    # 补全表状态展示
-                    cp1, cp2 = st.columns(spec=2)
-                    # 计算每行的长度
-                    with cp1:
-                        lengths = np.array([len(np.trim_zeros(row, 'b')) for row in padded])
-                        show_lengths = pd.Series(lengths).rename_axis("序列").rename(index="长度")
-                        show_lengths.index = show_lengths.index + 1
-                        st.dataframe(show_lengths, use_container_width=True)
-                    # 生成统计表
-                    with cp2:
-                        unique_lengths, counts = np.unique(lengths, return_counts=True)
-                        stat_table = np.column_stack((unique_lengths, counts))
-                        show_table = pd.DataFrame(stat_table) \
-                            .set_index(0).rename_axis("长度").rename(columns={1: "占比数"})
-                        show_table["占比"] = show_table["占比数"].apply(
-                            lambda x: "{:.2f}%".format(x / len(padded) * 100))
-                        st.dataframe(show_table, use_container_width=True)
-            else:
-                st.info("没有启用 **:orange[数据展示]** ", icon='⚠️')
 
-    next_check = tokenized_data_check & tokenizer_check & sequences_check & padded_check
+        # 文件检查
+        next_check = tokenized_data_check & tokenizer_check & sequences_check & padded_check
+
+        with co2:
+            if next_check:
+                if show_module:
+                    t1, t2, t3, t4, t5 = st.tabs(
+                        ["数据处理预览", "词汇映射预览", "评论转换预览", "转换补全预览", "补全表信息"])
+                    with t1:
+                        # 处理数据展示
+                        if tokenized_data is not None:
+                            show_data = tokenized_data.rename(
+                                columns={"sentiment": "情感", "tokenized_comment": "分词"}).rename_axis("序列ID")
+                            show_data.index = show_data.index + 1  # 从1开始
+                        else:
+                            show_data = None
+                        st.dataframe(show_data, use_container_width=True)
+                    with t2:
+                        # 词汇表展示
+                        if tokenizer is not None:
+                            show_tokenizer = pd.Series(tokenizer.index_word)  # 字典映射变dataframe
+                            show_tokenizer = show_tokenizer.rename(index="映射词汇").rename_axis("索引")
+                        else:
+                            show_tokenizer = None
+                        st.dataframe(show_tokenizer, use_container_width=True)
+                    with t3:
+                        # 转换表展示, 由于太大用字典拆分表示
+                        show_seq = sequences
+                        if show_seq is not None:
+                            length = len(sequences)
+                            seq_index = st.number_input(f"**序列ID:** :green[1~{length}] ",
+                                                        value=1,
+                                                        min_value=1,
+                                                        max_value=length)
+                            show_seq = pd.DataFrame(sequences[seq_index - 1])
+                            show_seq.index = show_seq.index + 1  # 从1开始
+                            show_seq = show_seq.rename(columns={0: "特征值"}).rename_axis("时间步")
+                        st.dataframe(show_seq, use_container_width=True)
+                    with t4:
+                        # 补全表展示
+                        show_padded = None
+                        if padded is not None:
+                            show_padded = pd.DataFrame(padded).rename_axis("序列ID")
+                            show_padded.index = show_padded.index + 1
+                        st.dataframe(show_padded, use_container_width=True)
+                    with t5:
+                        # 补全表状态展示
+                        cp1, cp2 = st.columns(spec=2)
+                        # 计算每行的长度
+                        with cp1:
+                            lengths = np.array([len(np.trim_zeros(row, 'b')) for row in padded])
+                            show_lengths = pd.Series(lengths).rename_axis("序列").rename(index="长度")
+                            show_lengths.index = show_lengths.index + 1
+                            st.dataframe(show_lengths, use_container_width=True)
+                        # 生成统计表
+                        with cp2:
+                            unique_lengths, counts = np.unique(lengths, return_counts=True)
+                            stat_table = np.column_stack((unique_lengths, counts))
+                            show_table = pd.DataFrame(stat_table) \
+                                .set_index(0).rename_axis("长度").rename(columns={1: "占比数"})
+                            show_table["占比"] = show_table["占比数"].apply(
+                                lambda x: "{:.2f}%".format(x / len(padded) * 100))
+                            st.dataframe(show_table, use_container_width=True)
+            else:
+                st.info("没有**:green[数据]**或者没有启用**:orange[数据展示]** ", icon='⚠️')
+
     with st.container(border=True):
         model_name = st.text_input("**模型名称:**",
                                    placeholder="存在则读取模型/不存在则新建模型",
@@ -564,7 +568,8 @@ if use_module:
         if hadmodel_check:
             s = time.time()
             if chosen_model:
-                predict_model = tf.keras.models.load_model(f"{datapath}/keras/saves/{chosen_model}/{chosen_model}.keras")
+                predict_model = tf.keras.models.load_model(
+                    f"{datapath}/keras/saves/{chosen_model}/{chosen_model}.keras")
             e = time.time()
             st.success(f"**:orange[{chosen_model}]模型**读取成功: {(e - s):.2f}s", icon='✅')
         else:

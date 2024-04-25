@@ -269,15 +269,11 @@ if train_module:
     tokenized_data_check, tokenizer_check, sequences_check, padded_check = pre_data_check()
     pre_check = tokenized_data_check & tokenizer_check & sequences_check & padded_check
     with st.status("**数据预处理**", expanded=not pre_check):
-        # st.markdown("###### ℹ️模型页面反应和加载比较缓慢, 请耐心等待")
-        # 弱性能云服禁用
-        st.markdown("###### :red[ℹ️性能弱的云服或者仅供展示的部署禁用]")
+        st.markdown("###### ℹ️模型页面反应和加载比较缓慢, 请耐心等待")
         co1, co2 = st.columns(spec=2)
         with co1:
             cut_toggle = st.toggle("*使用 :orange[thulac] 分词(默认 :orange[jieba] )*", value=False)
-            # retokenizer_button = st.button("**一键处理**", type="primary", use_container_width=True)
-            # 弱性能云服禁用
-            retokenizer_button = st.button("**一键处理**", type="primary", use_container_width=True, disabled=True)
+            retokenizer_button = st.button("**一键处理**", type="primary", use_container_width=True)
             next_check = False
             with st.container(border=True):
                 infoholder = st.empty()

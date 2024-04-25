@@ -71,14 +71,9 @@ with st.sidebar:
     with st.container(border=True):
         st.markdown("#### 缓存操作: ####")
         MODE = st.toggle("强制覆盖", help="强制覆盖耗时更久", value=False)
-        # if st.button("全部缓存",
-        #              type="primary",
-        #              use_container_width=True):
-        # 展示部署禁用
         if st.button("全部缓存",
                      type="primary",
-                     use_container_width=True,
-                     disabled=True):
+                     use_container_width=True):
             # 全部缓存
             all_cache(_db=DB, _mode=MODE)
 

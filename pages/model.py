@@ -257,11 +257,11 @@ if train_module:
             st.form_submit_button("应用修改", use_container_width=True)
 
     # 展示数据
-    with st.expander("**已收集数据:** :green[1000]/{}".format(":red[None]" if data is None else f":green[{len(data)}]")):
-        if data is not None:
+    if data is None:
+        st.markdown("ℹ️ **:red[评论数据集为空]** ")
+    else:
+        with st.expander("**已收集数据:** :blue[1000]*(抽取)*/{}*(全部)*".format(f":green[{len(data)}]")):
             st.dataframe(show_all_data.sample(n=1000, axis=0), use_container_width=True)
-        else:
-            st.markdown("ℹ️ **:red[评论数据集为空]** ")
 
     # # 临时用0.1不然训练集太大
     # data = data[:10000].reset_index(drop=True)

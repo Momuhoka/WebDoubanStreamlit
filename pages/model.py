@@ -270,7 +270,10 @@ if train_module:
         co1, co2 = st.columns(spec=2)
         with co1:
             cut_toggle = st.toggle("*使用 :orange[thulac] 分词(默认 :orange[jieba] )*", value=False)
-            retokenizer_button = st.button("**一键处理**", type="primary", use_container_width=True)
+            # retokenizer_button = st.button("**一键处理**", type="primary", use_container_width=True)
+            # 弱性能云服禁用
+            retokenizer_button = st.button("**一键处理**", type="primary", use_container_width=True, disabled=True)
+            next_check = False
             with st.container(border=True):
                 infoholder = st.empty()
                 infoholder_button = st.empty()

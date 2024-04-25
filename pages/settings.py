@@ -76,7 +76,9 @@ def create_data(_filespath: list):
 #     return neg_data.sample(_min_len), neu_data.sample(_min_len), pos_data.sample(_min_len)
 
 
-if st.button("合成数据", use_container_width=True):
+# if st.button("合成数据", use_container_width=True):
+# 部署项目展示禁用
+if st.button("合成数据", use_container_width=True, disabled=True):
     walkers = os.listdir(cachepath)
     filespath = [f"{cachepath}/{walker}" for walker in walkers if not os.path.isfile(f"{cachepath}/{walker}")]
     # st.write(filespath)

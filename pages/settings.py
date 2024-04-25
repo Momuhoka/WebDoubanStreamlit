@@ -8,6 +8,13 @@ import streamlit as st
 
 from data.modules import diy_menu, pages_dict, datapath, cachepath
 
+# 设置全局属性
+st.set_page_config(
+    page_title='设置',
+    page_icon='⚙️',
+    layout='wide'
+)
+
 # 页面菜单
 diy_menu(_page="工具", _page_dict=pages_dict)
 

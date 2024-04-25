@@ -174,38 +174,34 @@ with tab_3:
             fig_star = pie_chart_module(star_data, "用户评分分布")
             st.plotly_chart(fig_star, use_container_width=True)
     with co4:
-        reviews=['短评','长评']
+        reviews = ['短评', '长评']
         with st.expander(f"<{film}>-评论", expanded=True):
             option = st.selectbox(
-                'Featured reviews',
+                '精选评论',
                 reviews
             )
-            if(option=='短评'):
-                index1=scommsDf[scommsDf['star']==5.0].index[0]
-                comment = scommsDf.loc[index1,'comment']
-                user_data = scommsDf.loc[index1,'用户']
-                date_data = scommsDf.loc[index1,'date']
-                homepage = scommsDf.loc[index1,'homepage']
-                comment_display = f"""{comment}
-
-Author    :    {user_data}  
-Date      :    {date_data}
-                """
-                st.text_area('', comment_display, height=250)
-                st.write("If you are interested in this author   ,  here is his homepage:")
-                st.markdown(homepage)
+            if option == '短评':
+                index1 = scommsDf[scommsDf['star'] == 5.0].index[0]
+                comment = scommsDf.loc[index1, 'comment']
+                user_data = scommsDf.loc[index1, '用户']
+                date_data = scommsDf.loc[index1, 'date']
+                homepage = scommsDf.loc[index1, 'homepage']
+                with st.container(height=250, border=True):
+                    st.markdown(f"> **{comment}**")
+                    st.markdown(f"用户: {user_data}")
+                    st.markdown(f"日期: {date_data}")
+                st.markdown("*如果你对此用户感兴趣，下面是他的主页链接:*")
+                st.markdown(f"*{homepage}*")
             else:
                 index1 = fcommsDf[(fcommsDf['star'] == 5.0) & (fcommsDf['comment'].str.len() < 200)].index[0]
                 comment = fcommsDf.loc[index1, 'comment']
                 user_data = fcommsDf.loc[index1, '用户']
                 date_data = fcommsDf.loc[index1, 'date']
                 homepage = fcommsDf.loc[index1, 'homepage']
-                comment_display = f"""{comment}
-
-Author    :    {user_data}  
-Date      :    {date_data}
-                                """
-                st.text_area('', comment_display, height=300)
-                st.write("If you are interested in this author   ,  here is his homepage:")
-                st.markdown(homepage)
+                with st.container(height=250, border=True):
+                    st.markdown(f"> **{comment}**")
+                    st.markdown(f"用户: {user_data}")
+                    st.markdown(f"日期: {date_data}")
+                st.markdown("*如果你对此用户感兴趣，下面是他的主页链接:*")
+                st.markdown(f"*{homepage}*")
 

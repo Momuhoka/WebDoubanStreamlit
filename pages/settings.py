@@ -12,7 +12,8 @@ from data.modules import diy_menu, pages_dict, datapath, cachepath
 st.set_page_config(
     page_title='设置',
     page_icon='⚙️',
-    layout='wide'
+    layout='wide',
+    initial_sidebar_state='collapsed'
 )
 
 # 页面菜单

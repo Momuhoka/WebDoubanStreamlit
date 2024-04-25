@@ -17,7 +17,8 @@ DB = 3
 st.set_page_config(
     page_title='信息一览',
     page_icon='📁',
-    layout='wide'
+    layout='wide',
+    initial_sidebar_state='collapsed'
 )
 
 # experimental_allow_widgets=True

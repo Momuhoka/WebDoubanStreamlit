@@ -14,7 +14,8 @@ from data.modules import (cachepath, read_txt, keys_cache, initialize,
 st.set_page_config(
     page_title='整体分析',
     page_icon='🏷️',
-    layout='wide'
+    layout='wide',
+    initial_sidebar_state='collapsed'
 )
 
 

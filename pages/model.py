@@ -5,7 +5,6 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import thulac
-import random
 from stqdm import stqdm
 
 from data.modules import diy_menu, pages_dict, datapath
@@ -258,8 +257,11 @@ if train_module:
             st.form_submit_button("应用修改", use_container_width=True)
 
     # 展示数据
-    with st.expander("**已收集数据:** :green[100]/{}".format(":red[None]" if data is None else f":green[{len(data)}]")):
-        st.dataframe(random.sample(show_all_data, 100), use_container_width=True)
+    with st.expander("**已收集数据:** :green[1000]/{}".format(":red[None]" if data is None else f":green[{len(data)}]")):
+        if data:
+            st.dataframe(show_all_data.sample(n=1000, axis=0), use_container_width=True)
+        else:
+            st.markdown("ℹ️ **:red[评论数据集为空]** ")
 
     # # 临时用0.1不然训练集太大
     # data = data[:10000].reset_index(drop=True)

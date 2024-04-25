@@ -216,7 +216,8 @@ with col_2:
         for co in range(2 * len(avatar_url)):
             with colist[co]:
                 if co % 2 == 0:
-                    ui.avatar(src=avatar_url, key=co, fallback=avatar_name[co // 2][0])
+                    # 第一个为导演
+                    ui.avatar(src=avatar_url, key=co, fallback=avatar_name[co // 2][0] if co != 0 else "导演")
                 else:
                     st.markdown(avatar_name[co // 2])
         with st.container(border=True, height=150):

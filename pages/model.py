@@ -260,7 +260,7 @@ if train_module:
     if data is None:
         st.markdown("ℹ️ **:red[评论数据集为空]** ")
     else:
-        with st.expander(f"**已收集数据:** :blue[1000(抽取)]/:green[{len(data)}(全部)]**"):
+        with st.expander(f"**已收集数据:** :blue[1000(抽取)]/:green[{len(data)}(全部)]"):
             st.dataframe(show_all_data.sample(n=1000, axis=0), use_container_width=True)
 
     # # 临时用0.1不然训练集太大

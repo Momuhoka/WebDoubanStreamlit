@@ -128,37 +128,37 @@ with tab_3:
     col_5, col_6 = st.columns(spec=2, gap='large')
     with col_5:
         with st.expander(f"电影地域分布", expanded=True):
-            st.subheader('电影地域分布图')
-            plt.rcParams['font.size'] = 17
             country_counts = infos_dicts['area'].value_counts().reset_index()
             country_counts.columns = ['Country', 'Number of Movies']
             # 提取数据
             countries = country_counts['Country']
             movie_counts = country_counts['Number of Movies']
             # 创建画布
-            fig, ax = plt.subplots(figsize=(10, 8))
-            # 生成渐变色
-            colors = plt.cm.viridis(np.linspace(0, 1, len(countries)))
-            # 绘制横向柱状图
-            bars = ax.barh(countries, movie_counts, color=colors)
-            # 添加标题和标签
-            ax.set_title('不同国家的电影数量', fontdict={"fontproperties": plt_font})
-            ax.set_xlabel('电影数量', fontdict={"fontproperties": plt_font})
-            ax.set_ylabel('国家', fontdict={"fontproperties": plt_font})
-            # 显示纵坐标的值
-            for bar in bars:
-                xval = bar.get_width()
-                yval = bar.get_y() + bar.get_height() / 2
-                ax.text(xval, yval, round(xval, 2), va='center', ha='left', fontdict={"fontproperties": plt_font})
-            # 反转纵坐标轴
-            ax.invert_yaxis()
-            ax.set_yticklabels(countries, fontdict={"fontproperties": plt_font})
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-            # 调整布局
-            plt.tight_layout()
-            # 在Streamlit中显示图表
-            st.pyplot(fig)
+            fig = px.bar(country_counts, y='Country', x='Number of Movies',
+                         orientation='h', text='Number of Movies',
+                         color='Number of Movies',  # 根据电影数量给柱状图上色
+                         color_continuous_scale='Viridis',  # 使用 Viridis 渐变色
+                         labels={'Country': '国家', 'Number of Movies': '电影数量'})
+
+            # 更新布局设置
+            fig.update_layout(
+                title='不同国家的电影数量',
+                xaxis_title='电影数量',
+                yaxis_title='国家',
+                title_font=dict(size=24),
+                font=dict(family="Microsoft YaHei", size=10.5, color='black'),  # 设置全局字体为微软雅黑，字号为12
+                xaxis=dict(tickfont=dict(family="Microsoft YaHei", size=13, color='black')),
+                yaxis=dict(tickfont=dict(family="Microsoft YaHei", size=12.5, color='black')),
+                xaxis_title_font=dict(family="Microsoft YaHei", size=16, color='black'),
+                yaxis_title_font=dict(family="Microsoft YaHei", size=16, color='black'),
+                yaxis_categoryorder='total ascending',  # 使柱状图按数值大小逆序排列
+                height=525  # 设置图表高度为600像素
+            )
+
+            # 更新柱状图的文本标签位置
+            fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+            # 在 Streamlit 中显示图表
+            st.plotly_chart(fig, use_container_width=True)
     with col_6:
         with st.expander(f"不同国家电影推荐", expanded=True):
             country_choice = st.selectbox("选择一个电影类型来查找推荐电影:", countries)

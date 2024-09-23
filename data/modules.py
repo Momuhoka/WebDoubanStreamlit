@@ -76,9 +76,9 @@ def get_values(_r: redis.Redis, keys: list):
 def init_connection(db: int):
     # 连接指定数据库，记得关闭
     redis_pool = redis.ConnectionPool(
-        host='175.178.4.58',
+        host='127.0.0.1',
         port=6379,
-        password="momuhoka",
+        password="password",
         decode_responses=True,
         db=db)
     return redis.Redis(connection_pool=redis_pool)
